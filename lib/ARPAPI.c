@@ -6,4 +6,6 @@
  */
 #include "ARPAPI.h"
 
+int areq (struct sockaddr *IPaddr, socklen_t sockaddrlen, struct hwaddr *HWaddr) {
 
+}
