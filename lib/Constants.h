@@ -21,5 +21,8 @@
 #define TRUE  1
 #define FALSE  0
 #define ETHERNET 1
+#define FRAME_LENGTH 15
 #define ARP_NO_UDS_SOCKET -1
+#define FRAME_BUFFER_LENGTH 1500
+#define FRAME_LENGTH 1514
 #endif /* LIB_CONSTANTS_H_ */
