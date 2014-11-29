@@ -20,4 +20,6 @@
 #define ETH_TYPE_LEN 2
 #define TRUE  1
 #define FALSE  0
+#define ETHERNET 1
+#define ARP_NO_UDS_SOCKET -1
 #endif /* LIB_CONSTANTS_H_ */

@@ -10,6 +10,7 @@
 #include "unp.h"
 #include "MemoryAllocator.h"
 #include "Constants.h"
+#include "GenericUtility.h"
 struct ARPCACHEENTRY{
 	char HW_address[HADDR_LEN];
 	char IP_address[INET_ADDRSTRLEN];
