@@ -5,17 +5,8 @@
  *      Author: ravichandrasadineni
  */
 
-#include "UDSUtility.h"
-
-
-/*
- * UDSUtility.c
- *
- *  Created on: Nov 8, 2014
- *      Author: ravichandrasadineni
- */
-
-#include "UDSUtility.h"
+#include "ARPUDSUtility.h"
+#include "ARPUDSUtility.h"
 
 int getARPclientBindedsocket() {
 	int sockfd, fileFd;

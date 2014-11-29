@@ -30,11 +30,32 @@ LIBS = -lresolv -lnsl -pthread -lm unpv13e/libunp.a
 FLAGS = -g -O0
 
 CFLAGS = ${FLAGS} -I unpv13e/lib
-all: 
-OBJECTS=
+all:rsadineni_arp 
+OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o
 
+
+rsadineni_arp: ARP.o $(OBJECTS)
+	${CC} ${FLAGS} -o rsadineni_arp ARP.o $(OBJECTS) ${LIBS}
+
+GenericUtility.o: lib/GenericUtility.c
+	${CC} ${CFLAGS} -c lib/GenericUtility.c
+
+ARPSocketUtility.o: lib/ARPSocketUtility.c
+	${CC} ${CFLAGS} -c lib/ARPSocketUtility.c
+
+ARPUtility.o: lib/ARPUtility.c
+	${CC} ${CFLAGS} -c lib/ARPUtility.c
+
+MemoryAllocator.o: lib/MemoryAllocator.c
+	${CC} ${CFLAGS} -c lib/MemoryAllocator.c
+
+get_hw_addrs.o: lib/Asgn3_code/get_hw_addrs.c
+	${CC} ${CFLAGS} -c lib/Asgn3_code/get_hw_addrs.c
+	
+ARPUDSUtility.o: lib/ARPUDSUtility.c
+	${CC} ${CFLAGS} -c lib/ARPUDSUtility.c
 
 
 clean:
-	rm   $(OBJECTS)
+	rm   rsadineni_arp ARP.o $(OBJECTS)
 

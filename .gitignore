@@ -1,4 +1,7 @@
 .cproject
 .project
 .settings/
-
+*.o
+*.sh
+rsadineni_arp
+ARP

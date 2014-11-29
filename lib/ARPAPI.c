@@ -30,7 +30,6 @@ int areq (struct sockaddr *IPaddr, socklen_t sockaddrlen, struct hwaddr *HWaddr)
 		break;
 	}
 
-
 	unLinkSocket(clientSocket);
 	return 0;
 }
