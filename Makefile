@@ -67,5 +67,5 @@ AddressUtility.o: lib/AddressUtility.c
 	${CC} ${CFLAGS} -c lib/AddressUtility.c
 
 clean:
-	rm   rsadineni_arp ARP.o $(OBJECTS)
+	rm   rsadineni_arp hellanti_Tour ARP.o $(OBJECTS)
 
