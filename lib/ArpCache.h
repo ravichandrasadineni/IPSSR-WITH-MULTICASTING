@@ -11,19 +11,15 @@
 #include "MemoryAllocator.h"
 #include "Constants.h"
 #include "GenericUtility.h"
-struct ARPCACHEENTRY{
-	char HW_address[HADDR_LEN];
-	char IP_address[INET_ADDRSTRLEN];
-	int sll_ifindex;
-	char sll_hatype;
-	int udsSocket;
-	struct ARPCACHEENTRY *next;
-};
-typedef struct ARPCACHEENTRY ARPCacheEntry;
+#include "ARPUtility.h"
 
-void addEntry(ARPCacheEntry arpCachce);
+void addEntry(ARPDetails arpCachce);
+void updateEntry(ARPDetails arpCachce);
 void purgeEntry(int sockFd);
-int doesEntryExist(char ipAddress[INET_ADDRSTRLEN]);
-ARPCacheEntry getARPCacheEntry(char ipAddress[INET_ADDRSTRLEN]);
+int doesEntryExist(uint8_t sender_ip[4]) ;
+int doesEntryExistForIpString(char ipAddress[INET_ADDRSTRLEN]);
+void addorUpdateCacheEntry(arp_hdr arpHeader);
+ARPDetails getARPCacheEntry(char ipAddress[INET_ADDRSTRLEN]);
+void printARPCache();
 
 #endif /* LIB_ARPCACHE_H_ */
