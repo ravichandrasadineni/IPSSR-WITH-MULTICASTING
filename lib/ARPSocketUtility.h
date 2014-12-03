@@ -28,5 +28,11 @@ typedef struct interfacefInfo  ifInfo;
 void initializeList();
 int isMyIP(char ip_address[INET_ADDRSTRLEN]);
 void populateMacForIP(char ip_address[INET_ADDRSTRLEN],char macAddress[HADDR_LEN]);
+void populateLocalMacAddress(char macAddress[HADDR_LEN]);
+void populateLocalIpAddress(char ipAddress[INET_ADDRSTRLEN]);
+void addtoOpenSocketList(int sockFd);
+void deleteFromOpenSocketList(int sockFd);
+void setReadSetForOpenSockets(fd_set* readSet, int* maxfd);
+int getSetSocket(fd_set* readSet);
 int createAndBindSocketsPF_PACKETSOCKET();
 #endif /* LIB_ARPSOCKETUTILITY_H_ */

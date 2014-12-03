@@ -33,14 +33,14 @@ int getARPclientBindedsocket() {
 	return sockfd;
 }
 
-int getARPBindedsocket() {
+int getARPBindedAndListeningsocket() {
 	int sockfd, fileFd;
 	char nameBuff[32];
 	struct sockaddr_un servaddr;
 	bzero(&servaddr, sizeof(servaddr));
 	sockfd = socket(AF_LOCAL,SOCK_STREAM,0);
 	if(sockfd < 0) {
-		perror("unable to create client Unix Domain Socket :");
+		perror("unable to create ARP Unix Domain Socket :");
 		exit(0);
 	}
 	memset(nameBuff,0,sizeof(nameBuff));
@@ -52,8 +52,41 @@ int getARPBindedsocket() {
 		perror("Failed to Bind Unix Domain Socket :");
 		exit(0);
 	}
+	if(listen(sockfd,NUM_CONNECTIONS)<0) {
+		perror("unable to listen on Unix Domain Socket :");
+		exit(0);
+	}
 	return sockfd;
 }
+
+int getConnectedUDSSocket(int sockFd) {
+	int newSocket;
+	if ( (newSocket = accept(sockFd, NULL, NULL) )< 0) {
+		perror("unable to accept on Unix Domain Socket :");
+		exit(0);
+	}
+	return newSocket;
+}
+
+int recvUDSMessage(int sockFd, char * buff) {
+	int len;
+	if( (len = recv(sockFd, buff, UDS_PACKET_MAX_LEN, 0)) <0) {
+		perror("unable to receive data on Unix Domain Socket :");
+		exit(0);
+	}
+	return len;
+}
+
+void sendUDSMessage(int sockFd, char* buff) {
+
+	if(send(sockFd, buff, UDS_PACKET_MAX_LEN, 0)<0) {
+		perror("unable to send data on Unix Domain Socket :");
+		exit(0);
+	}
+}
+
+
+
 
 void unLinkSocket(int sockFd) {
 	struct sockaddr_un unixSocket;
@@ -76,6 +109,15 @@ void connectTO (int sockfd, char*fileName) {
 		unLinkSocket(sockfd);
 		exit(0);
 	}
+}
+
+
+
+void printUdsPacket(char *packet) {
+	printf("MAC ADDRESS : ");
+	printMacAddress(packet);
+	printf("\t");
+	printf("IP ADDRESS : %s\n",packet+HADDR_LEN);
 }
 
 void connectToARP(int sockfd) {

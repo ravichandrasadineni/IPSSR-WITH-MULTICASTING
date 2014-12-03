@@ -9,6 +9,48 @@
 int ipToInfMapperSize =0;
 ifInfo* ipToInfMapper=NULL;
 
+int openSocketList[OPEN_SOCKET_LIST_SIZE];
+int currentOpenSocketListSize =0;
+
+
+void addtoOpenSocketList(int sockFd) {
+	openSocketList[currentOpenSocketListSize] = sockFd;
+	currentOpenSocketListSize++;
+}
+
+int getSetSocket(fd_set* readSet) {
+	int i;
+	for(i=0; i<currentOpenSocketListSize; i++ ) {
+		if(FD_ISSET(openSocketList[i],readSet)) {
+			return openSocketList[i];
+		}
+	}
+	return -1;
+}
+
+void deleteFromOpenSocketList(int sockFd) {
+	int i;
+	int socketIndex = -1;
+	for(i=0; i<currentOpenSocketListSize; i++) {
+		if(openSocketList[i] == sockFd) {
+			socketIndex = i;
+		}
+	}
+	for(i=socketIndex; i<currentOpenSocketListSize-1;i++ ) {
+		openSocketList[i] = openSocketList[i+1];
+	}
+	currentOpenSocketListSize--;
+}
+
+
+void setReadSetForOpenSockets(fd_set* readSet, int* maxfd) {
+	int i ;
+	for (i=0; i<currentOpenSocketListSize; i++) {
+		FD_SET(openSocketList[i],readSet);
+		maxfd = MAX(maxfd,openSocketList[i]);
+	}
+}
+
 
 int isEth0(char* name) {
 	if(!strncmp(ETHERNET0,name,16)) {
@@ -51,7 +93,7 @@ int createAndBindSocketsPF_PACKETSOCKET() {
 	}
 	return sockfd;
 }
-int getNumOfInterfaces() {
+int getNumOfAliases() {
 	struct hwa_info	*hwa, *hwahead;
 	int size =0;
 	for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
@@ -60,6 +102,28 @@ int getNumOfInterfaces() {
 		}
 	}
 	return size;
+}
+
+void populateLocalMacAddress(char macAddress[HADDR_LEN]) {
+	if (ipToInfMapperSize> 0) {
+		memcpy(macAddress, ipToInfMapper[0].if_haddr, HADDR_LEN);
+	}
+	else {
+		printf("ARPSocketUtility.c : Interface List not initialized \n");
+		exit(0);
+	}
+}
+
+
+void populateLocalIpAddress(char ipAddress[INET_ADDRSTRLEN]) {
+
+	if (ipToInfMapperSize> 0) {
+		memcpy(ipAddress, ipToInfMapper[0].ip_address, INET_ADDRSTRLEN);
+	}
+	else {
+		printf("ARPSocketUtility.c : Interface List not initialized \n");
+		exit(0);
+	}
 }
 
 
@@ -86,7 +150,7 @@ void getDetailsOfInterfaces() {
 }
 
 void initializeList() {
-	int numOfinterfaces = getNumOfInterfaces();
+	int numOfinterfaces = getNumOfAliases();
 	ipToInfMapper = (ifInfo*)allocate_void(numOfinterfaces*sizeof(ifInfo));
 	getDetailsOfInterfaces();
 }

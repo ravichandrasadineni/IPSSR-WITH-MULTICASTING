@@ -11,14 +11,8 @@
 #include "ARPUDSUtility.h"
 #include"unp.h"
 #include "Constants.h"
+#include "ARPUtility.h"
 
-
-typedef struct hwaddr {
-		     int             sll_ifindex;	 /* Interface number */
-		     unsigned short  sll_hatype;	 /* Hardware type */
-		     unsigned char   sll_halen;		 /* Length of address */
-		     unsigned char   sll_addr[8];	 /* Physical layer address */
-} arpstruct;
 
 int areq (struct sockaddr *IPaddr, socklen_t sockaddrlen, struct hwaddr *HWaddr);
 

@@ -12,6 +12,9 @@
 int areq (struct sockaddr *IPaddr, socklen_t sockaddrlen, struct hwaddr *HWaddr) {
 	int clientSocket = getARPclientBindedsocket();
 	connectToARP(clientSocket);
+	struct sockaddr_in* ipAddress = (struct sockaddr_in *)IPaddr;
+	char* ipAddressString = inet_ntoa(ipAddress->sin_addr);
+	char* message = marshallMessage(ipAddressString,BRODCAST_MAC);
 	struct timeval tv;
 	int maxfd=0;
 	fd_set readSet;
@@ -20,16 +23,20 @@ int areq (struct sockaddr *IPaddr, socklen_t sockaddrlen, struct hwaddr *HWaddr)
 	FD_SET(clientSocket,&readSet);
 	tv.tv_sec = ARP_TIME_OUT_SECS;
 	tv.tv_usec = ARP_TIME_OUT_USECS;
-	//msg_send(clientSocket,sendingPacket);
+	sendUDSMessage(clientSocket,message);
 	if((select(maxfd,&readSet,NULL,NULL,&tv))<0) {
 		perror("ARPAPI.c : Select in the client Failed :");
 	}
+	char recvMessage[UDS_PACKET_MAX_LEN];
 	if(FD_ISSET(clientSocket,&readSet)) {
-		//msg_recv(clientSocket,&recievingPacket,NULL);
-		//printRecievedMessage(userchoice, recievingPacket.message);
-		break;
+		recvUDSMessage(clientSocket,recvMessage);
+		unMarshallMessage(recvMessage,ipAddressString, HWaddr->sll_addr );
+		HWaddr->sll_halen = HADDR_LEN;
+		HWaddr->sll_ifindex = getEth0Index();
+		HWaddr->sll_hatype = ETHERNET;
+	} else {
+		return -1;
 	}
-
 	unLinkSocket(clientSocket);
-	return 0;
+	return 1;
 }
