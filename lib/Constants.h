@@ -33,6 +33,8 @@
 #define PORT 1234
 #define MTU 1536
 #define IPHEADER_LENGTH 20
-#define IP_IDENTIFICATION 123
+#define IP_IDENTIFICATION 20008
+#define ICMP_PORT 1036
+#define UPD_PORT 1045
 
 #endif /* LIB_CONSTANTS_H_ */

@@ -34,10 +34,10 @@ void inititatePing(char* recvBuffer){
 void unmarshallMessage(char *recvBuffer, char *destination, int *count){
 	char Buffer[MTU];
 	strncpy(Buffer, recvBuffer, MTU);
-	int noOfTokens;
+	int noOfTokens = 0;
+	char *token = strtok(Buffer, DELIMITER);
+	*count = atoi(token);
 	if(!isLastNodeinTour(Buffer, count)){
-		char *token = strtok(Buffer, DELIMITER);
-		*count = atoi(token);
 		while(token != NULL){
 			noOfTokens++;
 			token = strtok(NULL, DELIMITER);
@@ -85,7 +85,7 @@ void addnodetoVisited(char* sourceAddr){
 	}
 }
 
-void createandBindUDPScoket(int port, char mulcastAddr[INET_ADDRSTRLEN],int *sockfd){
+void createandBindUDPScoket(int *sockfd){
 	sockfd = allocate_intmem(2);
 	char localAddress[INET_ADDRSTRLEN];
 	struct sockaddr_in cliaddr;
@@ -99,7 +99,7 @@ void createandBindUDPScoket(int port, char mulcastAddr[INET_ADDRSTRLEN],int *soc
 		exit(0);
 	}
 	cliaddr.sin_family = AF_INET;
-	cliaddr.sin_port = htons(INADDR_ANY);
+	cliaddr.sin_port = htons(UPD_PORT);
 	populateLocalAddress(localAddress);
 	if (inet_pton(localAddress, &sourceAddress, INET_ADDRSTRLEN ) < 0){
 		perror("inet_pton failed :");
@@ -118,27 +118,27 @@ void joinMulticastgroup(int sockfd){
 	int mulcast_join = sockfd;
 	bzero(&multicastgroup,sizeof(multicastgroup));
 	multicastgroup.imr_interface.s_addr = htonl(INADDR_ANY);
-	//inet_pton(mulcastAddr, &mulcast_addr, INET_ADDRSTRLEN );
 	multicastgroup.imr_multiaddr.s_addr = inet_addr(MULTICASTADDR);
 	setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &multicastgroup, sizeof(multicastgroup));
 }
 
-void recvmessage(int recvfd, char* recvBuffer ){
-	struct ip *ipPacket;
-	struct iphdr *ipHeader;
+void recvmessage(int rt, int pg, char* recvBuffer ){
+	struct ipPacket *ipMessage;
 	int count,sockfd[2];
+	int *socks = &sockfd;
+	createandBindUDPScoket(&sockfd);
 	char destination[INET_ADDRSTRLEN], sourceAddr[INET_ADDRSTRLEN];
-	recv_packet(recvfd, recvBuffer);
+	recv_packet(rt, recvBuffer, sourceAddr);
 	unmarshallMessage(recvBuffer, destination, &count);
-	ipHeader = (struct iphdr *)recvBuffer;
-	memcpy(sourceAddr, &(ipHeader->saddr), INET_ADDRSTRLEN);
 	if(isLastNodeinTour(recvBuffer, &count)){
 		//isAlready visited True we got nothing to update except to print the message
 		if(!isAlreadyVisited(sourceAddr)){
-			//Join mulitcast group ping the previous source and send the multicast message
+			//call ARP before pinging to get MAC address
+			//Join mulitcast group ping the previous source
 			//Since this is the last node there is no harm even need to add source to isVisited
 			joinMulticastgroup(sockfd[0]);
 			inititatePing(recvBuffer);
+			//send Mulitcast Message
 
 		}
 		else{
