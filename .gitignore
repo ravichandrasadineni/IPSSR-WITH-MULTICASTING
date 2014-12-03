@@ -4,6 +4,7 @@
 *.o
 *.sh
 rsadineni_arp
+rsadineni_Tour
 ARP
 Tour
 *~

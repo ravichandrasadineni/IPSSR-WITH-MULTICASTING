@@ -101,11 +101,11 @@ void createandBindUDPScoket(int *sockfd){
 	cliaddr.sin_family = AF_INET;
 	cliaddr.sin_port = htons(UPD_PORT);
 	populateLocalAddress(localAddress);
-	if (inet_pton(localAddress, &sourceAddress, INET_ADDRSTRLEN ) < 0){
+	if (inet_pton(AF_INET, localAddress, &sourceAddress) < 0){
 		perror("inet_pton failed :");
 		exit(0);
 	}
-	cliaddr.sin_addr.s_addr = inet_addr(sourceAddress);
+	cliaddr.sin_addr.s_addr = inet_addr(localAddress);
 	if(bind(sockfd[0],(struct sockaddr *)&cliaddr, sizeof(cliaddr))< 0){
 		perror("Bind Failed while creating UDP Socket:");
 		exit(0);
@@ -125,8 +125,8 @@ void joinMulticastgroup(int sockfd){
 void recvmessage(int rt, int pg, char* recvBuffer ){
 	struct ipPacket *ipMessage;
 	int count,sockfd[2];
-	int *socks = &sockfd;
-	createandBindUDPScoket(&sockfd);
+	int *socks = sockfd;
+	createandBindUDPScoket(sockfd);
 	char destination[INET_ADDRSTRLEN], sourceAddr[INET_ADDRSTRLEN];
 	recv_packet(rt, recvBuffer, sourceAddr);
 	unmarshallMessage(recvBuffer, destination, &count);

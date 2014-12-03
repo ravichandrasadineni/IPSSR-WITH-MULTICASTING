@@ -7,7 +7,7 @@
 #include "ArpCache.h"
 
 
-ARPDetails *head=NULL, *tail=NULL;
+ARPDetails *arpCacheHead=NULL, *arpCacheTail=NULL;
 int aRPCachecurrentSize;
 
 
@@ -21,7 +21,7 @@ copyARPDetails(ARPDetails *arpCachce1, ARPDetails arpCachce2) {
 
 void updateEntry(ARPDetails arpCachce) {
 	int i;
-	ARPDetails *currentPosition = head;
+	ARPDetails *currentPosition = arpCacheHead;
 	for(i=0;i<aRPCachecurrentSize;i++) {
 		if (isSameIP(arpCachce.IP_address,currentPosition->IP_address)) {
 			memcpy(currentPosition->HW_address, arpCachce.HW_address,HADDR_LEN);
@@ -33,10 +33,10 @@ void updateEntry(ARPDetails arpCachce) {
 
 void printARPCache() {
 	int i;
-	if(head == NULL) {
+	if(arpCacheHead == NULL) {
 		printf("ARP CACHE IS EMPTY \n");
 	}
-	ARPDetails *currentposition = head;
+	ARPDetails *currentposition = arpCacheHead;
 	for(i=0; i<aRPCachecurrentSize;i++) {
 		printf ("Target HW_address : ");
 		printMacAddress(currentposition->HW_address);
@@ -54,16 +54,16 @@ void printARPCache() {
 
 
 void addEntry(ARPDetails arpCachce) {
-	if (head == NULL) {
-		head = (ARPDetails*)(allocate_void(sizeof(ARPDetails)));
-		tail = head;
+	if (arpCacheHead == NULL) {
+		arpCacheHead = (ARPDetails*)(allocate_void(sizeof(ARPDetails)));
+		arpCacheTail = arpCacheHead;
 	}
 	else {
-		tail->next = (ARPDetails*)(allocate_void(sizeof(ARPDetails)));
-		tail = tail->next;
+		arpCacheTail->next = (ARPDetails*)(allocate_void(sizeof(ARPDetails)));
+		arpCacheTail = arpCacheTail->next;
 	}
-	copyARPDetails(tail ,arpCachce);
-	tail->next=NULL;
+	copyARPDetails(arpCacheTail ,arpCachce);
+	arpCacheTail->next=NULL;
 	aRPCachecurrentSize++;
 
 }
@@ -93,7 +93,7 @@ void addorUpdateCacheEntry(arp_hdr arpHeader) {
 
 void purgeEntry(int uSockkFd) {
 	int i;
-	ARPDetails *currentPosition = head;
+	ARPDetails *currentPosition = arpCacheHead;
 	for(i=0;i<aRPCachecurrentSize;i++) {
 		if(currentPosition->udsSocket == uSockkFd) {
 			currentPosition->udsSocket =ARP_NO_UDS_SOCKET;
@@ -114,7 +114,7 @@ int doesEntryExist(uint8_t sender_ip[4]) {
 }
 int doesEntryExistForIpString(char ipAddress[INET_ADDRSTRLEN]) {
 
-	ARPDetails *currentPosition = head;
+	ARPDetails *currentPosition = arpCacheHead;
 	int i;
 	for(i=0;i<aRPCachecurrentSize;i++) {
 		if (isSameIP(currentPosition->IP_address,ipAddress)) {
@@ -126,7 +126,7 @@ int doesEntryExistForIpString(char ipAddress[INET_ADDRSTRLEN]) {
 }
 
 ARPDetails getARPCacheEntry(char ipAddress[INET_ADDRSTRLEN]) {
-	ARPDetails *currentPosition = head;
+	ARPDetails *currentPosition = arpCacheHead;
 	ARPDetails newEntry;
 	int i;
 	for(i=0;i<aRPCachecurrentSize;i++) {

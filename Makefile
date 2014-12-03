@@ -31,11 +31,11 @@ FLAGS = -g -O0
 
 CFLAGS = ${FLAGS} -I unpv13e/lib
 
-all:rsadineni_arp  test
-OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o AddressUtility.o FrameSendRecvUtility.o ARPAPI.o ArpCache.o 
+all:rsadineni_arp  rsadineni_Tour test
+OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o AddressUtility.o FrameSendRecvUtility.o ARPAPI.o ArpCache.o PacketSendRecvUtility.o TourUtility.o 
 
 
-hellanti_Tour: Tour.o ${OBJECTS}
+rsadineni_Tour: Tour.o ${OBJECTS}
 	${CC} ${FLAGS} -o hellanti_Tour Tour.o ${OBJECTS} ${LIBS}
 
 rsadineni_arp: ARP.o $(OBJECTS)
@@ -88,5 +88,5 @@ AddressUtility.o: lib/AddressUtility.c
 	${CC} ${CFLAGS} -c lib/AddressUtility.c
 
 clean:
-	rm   rsadineni_arp hellanti_Tour ARP.o $(OBJECTS)
+	rm   rsadineni_arp rsadineni_Tour ARP.o $(OBJECTS)
 

@@ -8,6 +8,7 @@
 
 #include "lib/TourUtility.h"
 #include "lib/Constants.h"
+#include "lib/MemoryAllocator.h"
 unsigned int version = 4;
 u_int8_t protocol = 127;
 struct isVisited Visited;
@@ -111,5 +112,5 @@ int main(int argc, char* argv[]){
 	buildPayload(argv, argc, Payload);
 	printf("The payload in main is %s size of Payload is %ld\n",Payload, sizeof(Payload));
 	buildIPMessage(rt, Payload, argv[1], sendBuffer);
-	return 1;
+	return 0;
 }
