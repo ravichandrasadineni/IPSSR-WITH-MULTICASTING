@@ -42,7 +42,7 @@ int main(int argc, char *argv) {
 				printFrame(frame);
 				if(isQuery(arpHeader)) {
 					char* frame =buildReply(arpHeader);
-					printf(" \n\Sending ARP Frame\n");
+					printf(" \n\nSending ARP Frame\n");
 					printFrame(frame);
 					send_rawpacket(pfPacketSocket,frame);
 					addorUpdateCacheEntry(arpHeader);

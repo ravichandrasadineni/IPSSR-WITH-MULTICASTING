@@ -30,9 +30,13 @@ LIBS = -lresolv -lnsl -pthread -lm unpv13e/libunp.a
 FLAGS = -g -O0
 
 CFLAGS = ${FLAGS} -I unpv13e/lib
-all:rsadineni_arp test
-OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o ArpCache.o FrameSendRecvUtility.o ARPAPI.o
 
+all:rsadineni_arp  test
+OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o AddressUtility.o FrameSendRecvUtility.o ARPAPI.o ArpCache.o 
+
+
+hellanti_Tour: Tour.o ${OBJECTS}
+	${CC} ${FLAGS} -o hellanti_Tour Tour.o ${OBJECTS} ${LIBS}
 
 rsadineni_arp: ARP.o $(OBJECTS)
 	${CC} ${FLAGS} -o rsadineni_arp ARP.o $(OBJECTS) ${LIBS}
@@ -74,7 +78,15 @@ get_hw_addrs.o: lib/Asgn3_code/get_hw_addrs.c
 ARPUDSUtility.o: lib/ARPUDSUtility.c
 	${CC} ${CFLAGS} -c lib/ARPUDSUtility.c
 
+TourUtility.o: lib/TourUtility.c
+	${CC} ${CFLAGS} -c lib/TourUtility.c
+
+PacketSendRecvUtility.o: lib/PacketSendRecvUtility.c
+	${CC} ${CFLAGS} -c lib/PacketSendRecvUtility.c
+
+AddressUtility.o: lib/AddressUtility.c
+	${CC} ${CFLAGS} -c lib/AddressUtility.c
 
 clean:
-	rm   rsadineni_arp ARP.o $(OBJECTS)
+	rm   rsadineni_arp hellanti_Tour ARP.o $(OBJECTS)
 
