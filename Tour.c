@@ -76,6 +76,7 @@ int main(int argc, char* argv[]){
 				printf("Received my packet \n");
 				if(!isAlreadyNeighbour(ti)){
 					addNeighbours(ti);
+					printneighbours();
 				}
 				if(tv == NULL ) {
 					tv = &pTV;
