@@ -12,6 +12,18 @@ char** allocateINETADDRMemory(int count) {
 
 
 
+void printTourInfo (tourInfo ti) {
+	printf("Count : %d \t ",ti.count);
+	printf("Cp: %d \t ",ti.currentPosition);
+	printf("MA: %s \t ",ti.multicastAddress);
+	printf("Mp: %d \n ",ti.multicastPort);
+	int i;
+	for(i=0;i<ti.count;i++) {
+		printf ("%s \t", ti.tourAddresses[i]);
+	}
+}
+
+
 tourInfo contstructIntTourPacket(int argc ,char *argv[]) {
 	int i;
 	char hostname[1024];
@@ -82,6 +94,8 @@ tourInfo breakTourPayload(char *packetMessage, int* isMyPacket) {
 	}
 	strncpy(ti.multicastAddress,strtok(PacketToken, DELIMETER), INET_ADDRSTRLEN);
 	ti.multicastPort = atoi(strtok(PacketToken,DELIMETER));
+	printf("Received Tour Packet is \n");
+	printTourInfo(ti);
 	return ti;
 }
 
@@ -91,11 +105,6 @@ int isLastNode(tourInfo tI) {
 	}
 	return FALSE;
 }
-
-
-
-
-
 
 
 uint16_t
@@ -167,23 +176,10 @@ void forwardTourIPPacket(int rt, tourInfo ti){
 	free(ipPacket);
 }
 
-void printTourUtility (tourInfo ti) {
-	printf("Count : %d \t ",ti.count);
-	printf("Cp: %d \t ",ti.currentPosition);
-	printf("MA: %s \t ",ti.multicastAddress);
-	printf("Mp: %d \n ",ti.multicastPort);
-	int i;
-	for(i=0;i<ti.count;i++) {
-		printf ("%s \t", ti.tourAddresses[i]);
-	}
-}
-
-
-
 void initateTour(int rt,int argc,char *argv[]) {
 	tourInfo startTI = contstructIntTourPacket(argc,argv);
 	printf("TourUtiltiy.c :TourInfo in initate TOur");
-	printTourUtility(startTI);
+	printTourInfo(startTI);
 	char *tourPayload =buildTourPayload(startTI);
 	char* ipPacket= allocate_strmem(MTU);
 	buildTourIPMessage( tourPayload, startTI.tourAddresses[startTI.currentPosition +1], ipPacket);

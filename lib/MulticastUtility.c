@@ -62,6 +62,7 @@ int createMultiCastListeningsocket() {
 }
 
 void sendMultiCastMessage(int sockFd, int type) {
+	printf("Sending Multicast messages \n");
 	struct sockaddr_in groupSock;
 	char message[2];
 	memset((char *) &groupSock, 0, sizeof(groupSock));

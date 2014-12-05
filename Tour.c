@@ -94,7 +94,7 @@ int main(int argc, char* argv[]){
 		}
 	}
 
-
+	printf("Done with Pinging. About to handle Multicast messages \n");
 	if(multicastListeningSocket != MULTICAST_NOT_SET) {
 		handleMulticasting( multicastListeningSocket,multicastSendingSocket);
 	}
