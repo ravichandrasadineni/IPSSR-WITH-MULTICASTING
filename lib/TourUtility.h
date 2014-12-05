@@ -43,9 +43,9 @@ void forwardTourIPPacket(int rt, tourInfo ti);
 int isVisited(tourInfo ti);
 void addsourcetoVisited(tourInfo ti);
 tourInfo breakTourPayload(char *Message);
-void buildTourPayload(tourInfo ti, char *tourPayload);
+char* buildTourPayload(tourInfo ti);
 void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADDRSTRLEN], char* Message);
-tourInfo contstructIntTourPacket(char *argv[]);
+tourInfo contstructIntTourPacket(int argc, char *argv[]);
 int isLastNode(tourInfo tI);
 
 

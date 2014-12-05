@@ -7,14 +7,18 @@ Visited alreadyVisited;
 
 tourInfo contstructIntTourPacket(int argc ,char *argv[]) {
 	int i;
+	char hostname[1024];
 	tourInfo ti;
 	ti.count = argc;
-	ti.tourAddresses = (char*[INET_ADDRSTRLEN])allocate_strmem(ti.count *INET_ADDRSTRLEN);
+	ti.tourAddresses = (char* [INET_ADDRSTRLEN])allocate_strmem(ti.count *INET_ADDRSTRLEN);
 	ti.currentPosition = 0;
 	strncpy(ti.multicastAddress, MULTICASTADDR, INET_ADDRSTRLEN);
-	ti.multicastPort = MULTICASTPORT;
-	int i;
-	strncpy(ti.tourAddresses[0],getEth0Index(), INET_ADDRSTRLEN);
+	intTochar(ti.multicastPort, MULTICASTPORT);
+	if (gethostname(hostname, 1023) < 0){
+		perror("TourUtility.c : gethostname failed :");
+		exit(0);
+	}
+	strncpy(ti.tourAddresses[0],hostname, INET_ADDRSTRLEN);
 	for(i=1; i<argc;i++) {
 		strncpy(ti.tourAddresses[i],argv[i], INET_ADDRSTRLEN);
 	}
@@ -32,7 +36,7 @@ char* buildTourPayload(tourInfo ti) {
 	intTochar(ti.count,countString);
 	intTochar(ti.currentPosition,currentPositionString);
 	intTochar(ti.multicastPort,multicastPortString);
-	memset(tourPayload, "\0",TOUR_PACKET_LENGTH);
+	memset(tourPayload, '\0',TOUR_PACKET_LENGTH);
 	strncpy(tourPayload,countString,4);
 	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
 	strncpy(tourPayload,currentPositionString,4);
@@ -57,12 +61,12 @@ tourInfo breakTourPayload(char *packetMessage) {
 	ti.count= atoi(strtok(PacketToken, DELIMETER));
 	ti.currentPosition = atoi(strtok(NULL, DELIMETER));
 	ti.currentPosition  += 1;
-	ti.tourAddresses = (char* [INET_ADDRSTRLEN] )allocate_strmem(ti.count *INET_ADDRSTRLEN);
+	ti.tourAddresses = (char* [INET_ADDRSTRLEN])allocate_strmem(ti.count *INET_ADDRSTRLEN);
 	int i;
 	for(i=0; i<ti.count;i++) {
-		strncpy(ti.tourAddresses[i],strtok(PacketToken, DELIMETER));
+		strncpy(ti.tourAddresses[i],strtok(PacketToken, DELIMETER), INET_ADDRSTRLEN);
 	}
-	strncpy(ti.multicastAddress,strtok(PacketToken, DELIMETER));
+	strncpy(ti.multicastAddress,strtok(PacketToken, DELIMETER), INET_ADDRSTRLEN);
 	ti.multicastPort = atoi(strtok(PacketToken,DELIMETER));
 	return ti;
 }
@@ -147,7 +151,7 @@ ip_Checksum (uint16_t *addr, int len)
 
 void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADDRSTRLEN], char* Message){
 	struct ip *ipHdr;
-	ipHdr = (struct ipPacket *)Message;
+	ipHdr = (struct ip *)Message;
 	ipHdr->ip_v = IPVERSION;
 	ipHdr->ip_hl = sizeof(struct iphdr)>>2;
 	ipHdr->ip_ttl = 255;

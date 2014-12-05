@@ -17,6 +17,7 @@ char* recv_packet(int recvfd){
 }
 
 void send_packet(int sendfd, char* sendBuff){
+	int s;
 	if((s = send(sendfd, (void*)sendBuff, sizeof(sendBuff), 0)) < sizeof(sendBuff)){
 		printf("Could not send total packet only part of the packet of size %d is sent\n",s);
 		exit(0);

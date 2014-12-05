@@ -14,7 +14,7 @@
 #include "TourUtility.h"
 #include <sys/types.h>
 #include <sys/socket.h>
-void recv_packet(int recvfd, char* readBuff, char *sourceAddr);
+
 char* recv_packet(int recvfd);
 void send_packet(int sendfd, char* sendBuff);
 #endif /* LIB_PACKETSENDRECVUTILITY_H_ */
