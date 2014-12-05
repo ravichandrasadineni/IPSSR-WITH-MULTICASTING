@@ -1,5 +1,9 @@
 #include "TourUtility.h"
 
+Visited *head = NULL;
+Visited *tail = NULL;
+
+Visited alreadyVisited;
 
 tourInfo contstructIntTourPacket(int argc ,char *argv[]) {
 	int i;
@@ -16,6 +20,7 @@ tourInfo contstructIntTourPacket(int argc ,char *argv[]) {
 	}
 	return ti;
 }
+
 
 
 char* buildTourPayload(tourInfo ti) {
@@ -69,6 +74,50 @@ int isLastNode(tourInfo tI) {
 	return FALSE;
 }
 
+void getsourceAddress(tourInfo ti, char sourceAddress[INET_ADDRSTRLEN]){
+	int position = ti.count-1;
+	strncpy(sourceAddress, ti.tourAddresses[position], INET_ADDRSTRLEN);
+}
+
+void addsourcetoVisited(tourInfo ti){
+	int position = ti.count;
+	char sourceAddr[INET_ADDRSTRLEN];
+	getsourceAddress(ti, sourceAddr);
+	Visited *tmp = tail;
+	Visited *newNode=malloc(sizeof(Visited));
+	strncpy(newNode->sourceAddress, sourceAddr, INET_ADDRSTRLEN);
+	newNode->next=NULL;
+	if(tmp == NULL)
+	{
+		tmp = newNode;
+	}
+	else
+	{
+		while(tmp->next!=NULL)
+		{
+			tmp=tmp->next;
+		}
+		tmp->next=newNode;
+	}
+}
+
+int isVisited(tourInfo ti){
+	Visited *tmp = head;
+	char sourceAddr[INET_ADDRSTRLEN];
+	getsourceAddress(ti, sourceAddr);
+	if(tmp == NULL){
+		return FALSE;
+	}
+	else{
+		while(tmp != NULL){
+			if(!strncmp(tmp->sourceAddress, sourceAddr, INET_ADDRSTRLEN)){
+				return TRUE;
+			}
+			tmp = tmp->next;
+		}
+	}
+	return FALSE;
+}
 
 
 uint16_t
@@ -105,11 +154,11 @@ void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADD
 	ipHdr->ip_tos = 0;
 	ipHdr->ip_sum = 0;
 	if (( inet_pton (AF_INET, getEth0IpAddress(), &(ipHdr->ip_src))) != 1) {
-		perror("ICMPUTILITY.C source address conversion failed");
+		perror("TourUtility.C source address conversion failed");
 		exit (EXIT_FAILURE);
 	}
 	if (( inet_pton (AF_INET, destAddr, &(ipHdr->ip_dst))) != 1) {
-		perror("ICMPUTILITY.C destination address conversion failed");
+		perror("TourUtility.C destination address conversion failed");
 		exit (EXIT_FAILURE);
 	}
 	ipHdr->ip_p = htons(IP_PROTOCOL);
@@ -122,7 +171,14 @@ void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADD
 }
 
 
-
+void forwardTourIPPacket(int rt, tourInfo ti){
+	char *tourPayload = buildTourPayload(ti);
+	char *ipPacket = allocate_strmem(MTU);
+	buildTourIPMessage(tourPayload, ti.tourAddresses[ti.count], ipPacket);
+	free(tourPayload);
+	send_packet(rt, ipPacket);
+	free(ipPacket);
+}
 
 
 void initateTour(int rt,int argc,char *argv[]) {

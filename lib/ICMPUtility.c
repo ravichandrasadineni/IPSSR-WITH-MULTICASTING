@@ -13,8 +13,7 @@ neighbours *tail = NULL;
 
 int nsent =0;
 
-void
-tv_sub(struct timeval *out, struct timeval *in)
+void tv_sub(struct timeval *out, struct timeval *in)
 {
 	if ( (out->tv_usec -= in->tv_usec) < 0) {	/* out -= in */
 		--out->tv_sec;
@@ -58,8 +57,7 @@ void addNeighbours(char* sourceAddr){
 }
 
 
-uint16_t
-ipChecksum (uint16_t *addr, int len)
+uint16_t ipChecksum (uint16_t *addr, int len)
 {
 	int nleft = len;
 	int sum = 0;
@@ -86,8 +84,7 @@ ipChecksum (uint16_t *addr, int len)
 
 
 
-uint16_t
-icmpv4_cksum(uint16_t *addr, int len)
+uint16_t icmpv4_cksum(uint16_t *addr, int len)
 {
 	int				nleft = len;
 	uint32_t		sum = 0;
@@ -177,7 +174,7 @@ void sendIcmpMessages() {
 	eth->h_proto=(htons(ETH_P_IP));
 	populateEth0Mac(eth->h_source);
 	if(head == NULL) {
-		printf("ICMPUtility.c Not tour packet has been recieved but asked to send ping. EXITING \n");
+		printf("ICMPUtility.c Not tour packet has been received but asked to send ping. EXITING \n");
 		return;
 	}
 	neighbours* currentPosition = head;
@@ -198,8 +195,7 @@ void sendIcmpMessages() {
 }
 
 
-void
-procICMPv4(char *ptr )
+void procICMPv4(char *ptr )
 {
 	int				hlen1, icmplen;
 	double			rtt;
