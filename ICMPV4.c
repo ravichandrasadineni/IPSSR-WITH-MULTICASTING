@@ -14,8 +14,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Send an IPv4 ICMP packet via raw socket at the link layer (ethernet frame).
-// Need to have destination MAC address.
+// Send an IPv4 ICMP packet via raw socket.
+// Stack fills out layer 2 (data link) information (MAC addresses) for us.
 // Values set for echo request packet, includes some ICMP data.
 
 #include <stdio.h>
@@ -26,27 +26,22 @@
 #include <netdb.h>            // struct addrinfo
 #include <sys/types.h>        // needed for socket(), uint8_t, uint16_t, uint32_t
 #include <sys/socket.h>       // needed for socket()
-#include <netinet/in.h>       // IPPROTO_ICMP, INET_ADDRSTRLEN
+#include <netinet/in.h>       // IPPROTO_RAW, IPPROTO_IP, IPPROTO_ICMP, INET_ADDRSTRLEN
 #include <netinet/ip.h>       // struct ip and IP_MAXPACKET (which is 65535)
 #include <netinet/ip_icmp.h>  // struct icmp, ICMP_ECHO
 #include <arpa/inet.h>        // inet_pton() and inet_ntop()
 #include <sys/ioctl.h>        // macro ioctl is defined
 #include <bits/ioctls.h>      // defines values for argument "request" of ioctl.
 #include <net/if.h>           // struct ifreq
-#include <linux/if_ether.h>   // ETH_P_IP = 0x0800, ETH_P_IPV6 = 0x86DD
-#include <linux/if_packet.h>  // struct sockaddr_ll (see man 7 packet)
-#include <net/ethernet.h>
 
 #include <errno.h>            // errno, perror()
 
 // Define some constants.
-#define ETH_HDRLEN 14  // Ethernet header length
-#define IP4_HDRLEN 20  // IPv4 header length
-#define ICMP_HDRLEN 8  // ICMP header length for echo request, excludes data
+#define IP4_HDRLEN 20         // IPv4 header length
+#define ICMP_HDRLEN 8         // ICMP header length for echo request, excludes data
 
 // Function prototypes
 uint16_t checksum (uint16_t *, int);
-uint16_t icmp4_checksum (struct icmp, uint8_t *, int);
 char *allocate_strmem (int);
 uint8_t *allocate_ustrmem (int);
 int *allocate_intmem (int);
@@ -54,22 +49,20 @@ int *allocate_intmem (int);
 int
 main (int argc, char **argv)
 {
-  int i, status, datalen, frame_length, sd, bytes, *ip_flags;
+  int status, datalen, sd, *ip_flags;
+  const int on = 1;
   char *interface, *target, *src_ip, *dst_ip;
   struct ip iphdr;
   struct icmp icmphdr;
-  uint8_t *data, *src_mac, *dst_mac, *ether_frame;
+  uint8_t *data, *packet;
   struct addrinfo hints, *res;
-  struct sockaddr_in *ipv4;
-  struct sockaddr_ll device;
+  struct sockaddr_in *ipv4, sin;
   struct ifreq ifr;
   void *tmp;
 
   // Allocate memory for various arrays.
-  src_mac = allocate_ustrmem (6);
-  dst_mac = allocate_ustrmem (6);
   data = allocate_ustrmem (IP_MAXPACKET);
-  ether_frame = allocate_ustrmem (IP_MAXPACKET);
+  packet = allocate_ustrmem (IP_MAXPACKET);
   interface = allocate_strmem (40);
   target = allocate_strmem (40);
   src_ip = allocate_strmem (INET_ADDRSTRLEN);
@@ -80,46 +73,22 @@ main (int argc, char **argv)
   strcpy (interface, "eth0");
 
   // Submit request for a socket descriptor to look up interface.
-  if ((sd = socket (PF_PACKET, SOCK_RAW, htons (ETH_P_ALL))) < 0) {
+  if ((sd = socket (AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
     perror ("socket() failed to get socket descriptor for using ioctl() ");
     exit (EXIT_FAILURE);
   }
 
-  // Use ioctl() to look up interface name and get its MAC address.
+  // Use ioctl() to look up interface index which we will use to
+  // bind socket descriptor sd to specified interface with setsockopt() since
+  // none of the other arguments of sendto() specify which interface to use.
   memset (&ifr, 0, sizeof (ifr));
   snprintf (ifr.ifr_name, sizeof (ifr.ifr_name), "%s", interface);
-  if (ioctl (sd, SIOCGIFHWADDR, &ifr) < 0) {
-    perror ("ioctl() failed to get source MAC address ");
+  if (ioctl (sd, SIOCGIFINDEX, &ifr) < 0) {
+    perror ("ioctl() failed to find interface ");
     return (EXIT_FAILURE);
   }
   close (sd);
-
-  // Copy source MAC address.
-  memcpy (src_mac, ifr.ifr_hwaddr.sa_data, 6);
-
-  // Report source MAC address to stdout.
-  printf ("MAC address for interface %s is ", interface);
-  for (i=0; i<5; i++) {
-    printf ("%02x:", src_mac[i]);
-  }
-  printf ("%02x\n", src_mac[5]);
-
-  // Find interface index from interface name and store index in
-  // struct sockaddr_ll device, which will be used as an argument of sendto().
-  memset (&device, 0, sizeof (device));
-  if ((device.sll_ifindex = if_nametoindex (interface)) == 0) {
-    perror ("if_nametoindex() failed to obtain interface index ");
-    exit (EXIT_FAILURE);
-  }
-  printf ("Index for interface %s is %i\n", interface, device.sll_ifindex);
-
-  // Set destination MAC address: you need to fill these out
-  dst_mac[0] = 0xff;
-  dst_mac[1] = 0xff;
-  dst_mac[2] = 0xff;
-  dst_mac[3] = 0xff;
-  dst_mac[4] = 0xff;
-  dst_mac[5] = 0xff;
+  printf ("Index for interface %s is %i\n", interface, ifr.ifr_ifindex);
 
   // Source IPv4 address: you need to fill this out
   strcpy (src_ip, "192.168.1.132");
@@ -146,11 +115,6 @@ main (int argc, char **argv)
     exit (EXIT_FAILURE);
   }
   freeaddrinfo (res);
-
-  // Fill out sockaddr_ll.
-  device.sll_family = AF_PACKET;
-  memcpy (device.sll_addr, src_mac, 6);
-  device.sll_halen = htons (6);
 
   // ICMP data
   datalen = 4;
@@ -232,42 +196,52 @@ main (int argc, char **argv)
   icmphdr.icmp_seq = htons (0);
 
   // ICMP header checksum (16 bits): set to 0 when calculating checksum
-  icmphdr.icmp_cksum = icmp4_checksum (icmphdr, data, datalen);
+  icmphdr.icmp_cksum = 0;
 
-  // Fill out ethernet frame header.
+  // Prepare packet.
 
-  // Ethernet frame length = ethernet header (MAC + MAC + ethernet type) + ethernet data (IP header + ICMP header + ICMP data)
-  frame_length = 6 + 6 + 2 + IP4_HDRLEN + ICMP_HDRLEN + datalen;
+  // First part is an IPv4 header.
+  memcpy (packet, &iphdr, IP4_HDRLEN);
 
-  // Destination and Source MAC addresses
-  memcpy (ether_frame, dst_mac, 6);
-  memcpy (ether_frame + 6, src_mac, 6);
+  // Next part of packet is upper layer protocol header.
+  memcpy ((packet + IP4_HDRLEN), &icmphdr, ICMP_HDRLEN);
 
-  // Next is ethernet type code (ETH_P_IP for IPv4).
-  // http://www.iana.org/assignments/ethernet-numbers
-  ether_frame[12] = ETH_P_IP / 256;
-  ether_frame[13] = ETH_P_IP % 256;
+  // Finally, add the ICMP data.
+  memcpy (packet + IP4_HDRLEN + ICMP_HDRLEN, data, datalen);
 
-  // Next is ethernet frame data (IPv4 header + ICMP header + ICMP data).
+  // Calculate ICMP header checksum
+  icmphdr.icmp_cksum = checksum ((uint16_t *) (packet + IP4_HDRLEN), ICMP_HDRLEN + datalen);
+  memcpy ((packet + IP4_HDRLEN), &icmphdr, ICMP_HDRLEN);
 
-  // IPv4 header
-  memcpy (ether_frame + ETH_HDRLEN, &iphdr, IP4_HDRLEN);
-
-  // ICMP header
-  memcpy (ether_frame + ETH_HDRLEN + IP4_HDRLEN, &icmphdr, ICMP_HDRLEN);
-
-  // ICMP data
-  memcpy (ether_frame + ETH_HDRLEN + IP4_HDRLEN + ICMP_HDRLEN, data, datalen);
+  // The kernel is going to prepare layer 2 information (ethernet frame header) for us.
+  // For that, we need to specify a destination for the kernel in order for it
+  // to decide where to send the raw datagram. We fill in a struct in_addr with
+  // the desired destination IP address, and pass this structure to the sendto() function.
+  memset (&sin, 0, sizeof (struct sockaddr_in));
+  sin.sin_family = AF_INET;
+  sin.sin_addr.s_addr = iphdr.ip_dst.s_addr;
 
   // Submit request for a raw socket descriptor.
-  if ((sd = socket (PF_PACKET, SOCK_RAW, htons (ETH_P_ALL))) < 0) {
+  if ((sd = socket (AF_INET, SOCK_RAW, IPPROTO_RAW)) < 0) {
     perror ("socket() failed ");
     exit (EXIT_FAILURE);
   }
 
-  // Send ethernet frame to socket.
-  if ((bytes = sendto (sd, ether_frame, frame_length, 0, (struct sockaddr *) &device, sizeof (device))) <= 0) {
-    perror ("sendto() failed");
+  // Set flag so socket expects us to provide IPv4 header.
+  if (setsockopt (sd, IPPROTO_IP, IP_HDRINCL, &on, sizeof (on)) < 0) {
+    perror ("setsockopt() failed to set IP_HDRINCL ");
+    exit (EXIT_FAILURE);
+  }
+
+  // Bind socket to interface index.
+  if (setsockopt (sd, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof (ifr)) < 0) {
+    perror ("setsockopt() failed to bind to interface ");
+    exit (EXIT_FAILURE);
+  }
+
+  // Send packet.
+  if (sendto (sd, packet, IP4_HDRLEN + ICMP_HDRLEN + datalen, 0, (struct sockaddr *) &sin, sizeof (struct sockaddr)) < 0)  {
+    perror ("sendto() failed ");
     exit (EXIT_FAILURE);
   }
 
@@ -275,10 +249,8 @@ main (int argc, char **argv)
   close (sd);
 
   // Free allocated memory.
-  free (src_mac);
-  free (dst_mac);
   free (data);
-  free (ether_frame);
+  free (packet);
   free (interface);
   free (target);
   free (src_ip);
@@ -286,58 +258,6 @@ main (int argc, char **argv)
   free (ip_flags);
 
   return (EXIT_SUCCESS);
-}
-
-// Build IPv4 ICMP pseudo-header and call checksum function.
-uint16_t
-icmp4_checksum (struct icmp icmphdr, uint8_t *payload, int payloadlen)
-{
-  char buf[IP_MAXPACKET];
-  char *ptr;
-  int chksumlen = 0;
-  int i;
-
-  ptr = &buf[0];  // ptr points to beginning of buffer buf
-
-  // Copy Message Type to buf (8 bits)
-  memcpy (ptr, &icmphdr.icmp_type, sizeof (icmphdr.icmp_type));
-  ptr += sizeof (icmphdr.icmp_type);
-  chksumlen += sizeof (icmphdr.icmp_type);
-
-  // Copy Message Code to buf (8 bits)
-  memcpy (ptr, &icmphdr.icmp_code, sizeof (icmphdr.icmp_code));
-  ptr += sizeof (icmphdr.icmp_code);
-  chksumlen += sizeof (icmphdr.icmp_code);
-
-  // Copy ICMP checksum to buf (16 bits)
-  // Zero, since we don't know it yet
-  *ptr = 0; ptr++;
-  *ptr = 0; ptr++;
-  chksumlen += 2;
-
-  // Copy Identifier to buf (16 bits)
-  memcpy (ptr, &icmphdr.icmp_id, sizeof (icmphdr.icmp_id));
-  ptr += sizeof (icmphdr.icmp_id);
-  chksumlen += sizeof (icmphdr.icmp_id);
-
-  // Copy Sequence Number to buf (16 bits)
-  memcpy (ptr, &icmphdr.icmp_seq, sizeof (icmphdr.icmp_seq));
-  ptr += sizeof (icmphdr.icmp_seq);
-  chksumlen += sizeof (icmphdr.icmp_seq);
-
-  // Copy payload to buf
-  memcpy (ptr, payload, payloadlen);
-  ptr += payloadlen;
-  chksumlen += payloadlen;
-
-  // Pad to the next 16-bit boundary
-  for (i=0; i<payloadlen%2; i++, ptr++) {
-    *ptr = 0;
-    ptr++;
-    chksumlen++;
-  }
-
-  return checksum ((uint16_t *) buf, chksumlen);
 }
 
 // Checksum function

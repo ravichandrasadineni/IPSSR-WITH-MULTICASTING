@@ -21,38 +21,23 @@
 #include <netinet/ip.h>
 #include <netinet/udp.h>
 #include <netpacket/packet.h>
+#include "AddressUtility.h"
+#include "unp.h"
 
-
-
-
-struct isVisited{
-	char ipAddress[INET_ADDRSTRLEN];
-	int Visited;
-	struct isVisited *next;
+struct tourInfo {
+	int count;
+	int currentPosition;
+	char* tourAddresses[INET_ADDRSTRLEN];
+	char multicastAddress[INET_ADDRSTRLEN];
+	int multicastPort;
 };
 
-struct ipPacket{
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	unsigned int ip_hl:4;		/* header length */
-	unsigned int ip_v:4;		/* version */
-#endif
-#if __BYTE_ORDER == __BIG_ENDIAN
-	unsigned int ip_v:4;		/* version */
-	unsigned int ip_hl:4;		/* header length */
-#endif
-	u_int8_t ip_tos;			/* type of service */
-	u_short ip_len;			/* total length */
-	u_short ip_id;			/* identification */
-	u_short ip_off;			/* fragment offset field */
-#define	IP_RF 0x8000			/* reserved fragment flag */
-#define	IP_DF 0x4000			/* dont fragment flag */
-#define	IP_MF 0x2000			/* more fragments flag */
-#define	IP_OFFMASK 0x1fff		/* mask for fragmenting bits */
-	u_int8_t ip_ttl;			/* time to live */
-	u_int8_t ip_p;			/* protocol */
-	u_short ip_sum;			/* checksum */
-	struct in_addr ip_src, ip_dst;	/* source and dest address */
-	char Payload[1516];
-};
+typedef struct tourInfo tourInfo;
+tourInfo breakTourPayload(char *Message);
+void buildTourPayload(tourInfo ti, char *tourPayload);
+void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADDRSTRLEN], char* Message);
+tourInfo contstructIntTourPacket(char *argv[]);
+int isLastNode(tourInfo tI);
+
 
 #endif /* LIB_TOURUTILITY_H_ */

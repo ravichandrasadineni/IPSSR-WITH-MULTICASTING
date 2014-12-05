@@ -6,33 +6,18 @@
  */
 #include "PacketSendRecvUtility.h"
 
-void recv_packet(int recvfd, char* readBuff, char *sourceAddr){
-	int size = MTU;
-	char read_buff[MTU];
-	readBuff = read_buff;
-	struct sockaddr source;
-	socklen_t len;
-	printf("Before read : recvfd is %d\n",recvfd);
-	if (recvfrom(recvfd, (void *)readBuff, MTU, 0, &source, &len) < 0){
-		perror("Read Failed: ");
-		exit(0);
-	}
-	struct ipPacket *Message = (struct ipPacket *)readBuff;
-	if(IP_IDENTIFICATION == ntohs(Message->ip_id)){
-		printf("The packet is destined to me \n");
-	}
-	printf("Packet successfully received with size %ld\n",sizeof(readBuff));
+char* recv_packet(int recvfd){
+	char * frame = allocate_strmem(MTU);
+		int frameLength = MTU;
+		if(recv(recvfd, frame,&frameLength,0)<0) {
+			perror("PacketSendRecvUtility.c: Packet receiving error");
+		}
+	printf("Packet successfully received:  \n");
+	return frame;
 }
 
-void send_packet(int sendfd, char* sendBuff, char destination[INET_ADDRSTRLEN]){
-	int s;
-	printf("sendBuff is %s\n",sendBuff);
-	printf("Before send : sendfd is %d\tdestination is %s\n",sendfd,destination);
-	struct sockaddr_in dest;
-	dest.sin_addr.s_addr = inet_addr(destination);
-	dest.sin_family = AF_INET;
-	dest.sin_port = htons(PORT);
-	if((s = sendto(sendfd, (void*)sendBuff, sizeof(sendBuff), 0, (struct sockaddr *)&dest, sizeof(dest))) < sizeof(sendBuff)){
+void send_packet(int sendfd, char* sendBuff){
+	if((s = send(sendfd, (void*)sendBuff, sizeof(sendBuff), 0)) < sizeof(sendBuff)){
 		printf("Could not send total packet only part of the packet of size %d is sent\n",s);
 		exit(0);
 	}

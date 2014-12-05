@@ -15,5 +15,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 void recv_packet(int recvfd, char* readBuff, char *sourceAddr);
-void send_packet(int sendfd, char* sendBuff, char destination[INET_ADDRSTRLEN]);
+char* recv_packet(int recvfd);
+void send_packet(int sendfd, char* sendBuff);
 #endif /* LIB_PACKETSENDRECVUTILITY_H_ */

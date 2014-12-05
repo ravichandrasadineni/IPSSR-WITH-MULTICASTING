@@ -11,6 +11,10 @@ int isSameMac(char mac1[HADDR_LEN], char mac2[HADDR_LEN]) {
 	return TRUE;
 }
 
+void intTochar( int number, char* string) {
+	snprintf(string, 10,"%d",number);
+}
+
 char* getIpAddStr_ARPIPFMT(u_int8_t ipAddr[4]) {
 	struct in_addr sinAddr;
 	sinAddr.s_addr =getSaddr(ipAddr);

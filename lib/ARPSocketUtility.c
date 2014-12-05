@@ -63,9 +63,11 @@ int getEth0Index() {
 	struct hwa_info	*hwa, *hwahead;
 	for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
 		if (isEth0(hwa->if_name)) {
+			free_hwa_info(hwahead);
 			return hwa->if_index;
 		}
 	}
+
 	return -1;
 }
 
@@ -101,6 +103,7 @@ int getNumOfAliases() {
 			size++;
 		}
 	}
+	free_hwa_info(hwahead);
 	return size;
 }
 

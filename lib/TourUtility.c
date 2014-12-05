@@ -1,157 +1,136 @@
-/*
- * TourUtility.c
- *
- *  Created on: Nov 29, 2014
- *      Author: harsha
- */
 #include "TourUtility.h"
 
-struct isVisited *head = NULL;
-struct isVisited *tail = NULL;
 
-
-int isLastNodeinTour(char *recvBuffer, int *count){
-	char *token = strtok(recvBuffer, DELIMITER);
-	int noOfTokens;
-	while(token != NULL){
-		noOfTokens++;
-		token = strtok(NULL, DELIMITER);
+tourInfo contstructIntTourPacket(int argc ,char *argv[]) {
+	int i;
+	tourInfo ti;
+	ti.count = argc;
+	ti.tourAddresses = (char*[INET_ADDRSTRLEN])allocate_strmem(ti.count *INET_ADDRSTRLEN);
+	ti.currentPosition = 0;
+	strncpy(ti.multicastAddress, MULTICASTADDR, INET_ADDRSTRLEN);
+	ti.multicastPort = MULTICASTPORT;
+	int i;
+	strncpy(ti.tourAddresses[0],getEth0Index(), INET_ADDRSTRLEN);
+	for(i=1; i<argc;i++) {
+		strncpy(ti.tourAddresses[i],argv[i], INET_ADDRSTRLEN);
 	}
-	if(*count >= noOfTokens-3)
-		return 1;
-	else
-		return 0;
+	return ti;
 }
 
-void inititatePing(char* recvBuffer){
-	struct iphdr *ipHeader = malloc(sizeof(struct iphdr));
-	char sourceAddr[INET_ADDRSTRLEN];
-	ipHeader = (struct iphdr *)recvBuffer;
-	memcpy(sourceAddr, &(ipHeader->saddr), INET_ADDRSTRLEN);
 
+char* buildTourPayload(tourInfo ti) {
+	int i;
+	char countString[4];
+	char *tourPayload = allocate_strmem(TOUR_PACKET_LENGTH);
+	char currentPositionString[4];
+	char multicastPortString[4];
+	intTochar(ti.count,countString);
+	intTochar(ti.currentPosition,currentPositionString);
+	intTochar(ti.multicastPort,multicastPortString);
+	memset(tourPayload, "\0",TOUR_PACKET_LENGTH);
+	strncpy(tourPayload,countString,4);
+	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
+	strncpy(tourPayload,currentPositionString,4);
+	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
+	for(i=0;i<ti.count;i++) {
+		strncpy(tourPayload,ti.tourAddresses[i],INET_ADDRSTRLEN);
+		strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
+	}
+	strncpy(tourPayload,ti.multicastAddress,INET_ADDRSTRLEN);
+	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
+	strncpy(tourPayload,multicastPortString,4);
+	return tourPayload;
 }
 
-void unmarshallMessage(char *recvBuffer, char *destination, int *count){
-	char Buffer[MTU];
-	strncpy(Buffer, recvBuffer, MTU);
-	int noOfTokens = 0;
-	char *token = strtok(Buffer, DELIMITER);
-	*count = atoi(token);
-	if(!isLastNodeinTour(Buffer, count)){
-		while(token != NULL){
-			noOfTokens++;
-			token = strtok(NULL, DELIMITER);
-			if(noOfTokens == *count){
-				destination = token;
-			}
-		}
+tourInfo breakTourPayload(char *packetMessage) {
+	struct ip  *ipHdr = (struct ip *)packetMessage;
+	packetMessage = packetMessage+sizeof(struct iphdr);
+	tourInfo ti;
+	char PacketToken[TOUR_PACKET_LENGTH];
+	memset(PacketToken,'\0',FRAME_LENGTH);
+	strncpy(PacketToken,packetMessage, strlen(packetMessage));
+	ti.count= atoi(strtok(PacketToken, DELIMETER));
+	ti.currentPosition = atoi(strtok(NULL, DELIMETER));
+	ti.currentPosition  += 1;
+	ti.tourAddresses = (char* [INET_ADDRSTRLEN] )allocate_strmem(ti.count *INET_ADDRSTRLEN);
+	int i;
+	for(i=0; i<ti.count;i++) {
+		strncpy(ti.tourAddresses[i],strtok(PacketToken, DELIMETER));
 	}
-	else{
-		printf("This is last node:");
-	}
+	strncpy(ti.multicastAddress,strtok(PacketToken, DELIMETER));
+	ti.multicastPort = atoi(strtok(PacketToken,DELIMETER));
+	return ti;
 }
 
-int isAlreadyVisited(char* sourceAddr){
-	struct isVisited *temp = head;
-	if(temp == NULL){
-		return 0;
+int isLastNode(tourInfo tI) {
+	if(tI.currentPosition == (tI.count-1)) {
+		return TRUE;
 	}
-	while(temp != NULL){
-		if(!strncmp(temp->ipAddress, sourceAddr, INET_ADDRSTRLEN)){
-			return 1;
-			break;
-		}
-		temp = temp->next;
-	}
-	return 0;
+	return FALSE;
 }
 
-void addnodetoVisited(char* sourceAddr){
-	struct isVisited *add = tail;
-	//if isVisited is empty add it to the first node
-	if(add == NULL){
-		add->Visited = 1;
-		memcpy(add->ipAddress, sourceAddr, INET_ADDRSTRLEN);
-		add->next = NULL;
+
+
+uint16_t
+ip_Checksum (uint16_t *addr, int len)
+{
+	int nleft = len;
+	int sum = 0;
+	uint16_t *w = addr;
+	uint16_t answer = 0;
+
+	while (nleft > 1) {
+		sum += *w++;
+		nleft -= sizeof (uint16_t);
 	}
-	else{
-		//if isVisited is not empty we can add new values at the end of the list
-		while(add != NULL){
-			add = add->next;
-		}
-		add->Visited = 1;
-		memcpy(add->ipAddress, sourceAddr, INET_ADDRSTRLEN);
-		add->next = NULL;
+
+	if (nleft == 1) {
+		*(uint8_t *) (&answer) = *(uint8_t *) w;
+		sum += answer;
 	}
+
+	sum = (sum >> 16) + (sum & 0xFFFF);
+	sum += (sum >> 16);
+	answer = ~sum;
+	return (answer);
 }
 
-void createandBindUDPScoket(int *sockfd){
-	sockfd = allocate_intmem(2);
-	char localAddress[INET_ADDRSTRLEN];
-	struct sockaddr_in cliaddr;
-	struct in_addr sourceAddress;
-	if( (sockfd[0] = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
-		perror("Creation of socket Failed :");
-		exit(0);
+
+void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADDRSTRLEN], char* Message){
+	struct ip *ipHdr;
+	ipHdr = (struct ipPacket *)Message;
+	ipHdr->ip_v = IPVERSION;
+	ipHdr->ip_hl = sizeof(struct iphdr)>>2;
+	ipHdr->ip_ttl = 255;
+	ipHdr->ip_tos = 0;
+	ipHdr->ip_sum = 0;
+	if (( inet_pton (AF_INET, getEth0IpAddress(), &(ipHdr->ip_src))) != 1) {
+		perror("ICMPUTILITY.C source address conversion failed");
+		exit (EXIT_FAILURE);
 	}
-	if((sockfd[1] = socket(AF_INET, SOCK_DGRAM, 0)) < 0){
-		perror("Creation of second UDP Socket Failed :");
-		exit(0);
+	if (( inet_pton (AF_INET, destAddr, &(ipHdr->ip_dst))) != 1) {
+		perror("ICMPUTILITY.C destination address conversion failed");
+		exit (EXIT_FAILURE);
 	}
-	cliaddr.sin_family = AF_INET;
-	cliaddr.sin_port = htons(UPD_PORT);
-	populateLocalAddress(localAddress);
-	if (inet_pton(AF_INET, localAddress, &sourceAddress) < 0){
-		perror("inet_pton failed :");
-		exit(0);
-	}
-	cliaddr.sin_addr.s_addr = inet_addr(localAddress);
-	if(bind(sockfd[0],(struct sockaddr *)&cliaddr, sizeof(cliaddr))< 0){
-		perror("Bind Failed while creating UDP Socket:");
-		exit(0);
-	}
+	ipHdr->ip_p = htons(IP_PROTOCOL);
+	ipHdr->ip_len = htons (IP4_HDRLEN + TOUR_PACKET_LENGTH);
+	ipHdr->ip_id = htons(IP_IDENTIFICATION);
+	ipHdr->ip_sum = 0;
+	ipHdr->ip_sum = ip_Checksum((uint16_t *) ipHdr, IP4_HDRLEN);
+	printf("The version is %d\thl is %d\ttos is %d\tcheck is %d\tproto is %d\tttl is %d\tid is %d\ttot_len is %d\n",ipHdr->ip_v,ipHdr->ip_hl,ipHdr->ip_tos,ipHdr->ip_sum,ipHdr->ip_p,ipHdr->ip_ttl,ipHdr->ip_id, ipHdr->ip_len);
+	memcpy(Message+IP4_HDRLEN,Payload,TOUR_PACKET_LENGTH);
 }
 
-void joinMulticastgroup(int sockfd){
-	struct ip_mreq multicastgroup;
-	struct in_addr mulcast_addr;
-	int mulcast_join = sockfd;
-	bzero(&multicastgroup,sizeof(multicastgroup));
-	multicastgroup.imr_interface.s_addr = htonl(INADDR_ANY);
-	multicastgroup.imr_multiaddr.s_addr = inet_addr(MULTICASTADDR);
-	setsockopt(sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &multicastgroup, sizeof(multicastgroup));
-}
 
-void recvmessage(int rt, int pg, char* recvBuffer ){
-	struct ipPacket *ipMessage;
-	int count,sockfd[2];
-	int *socks = sockfd;
-	createandBindUDPScoket(sockfd);
-	char destination[INET_ADDRSTRLEN], sourceAddr[INET_ADDRSTRLEN];
-	recv_packet(rt, recvBuffer, sourceAddr);
-	unmarshallMessage(recvBuffer, destination, &count);
-	if(isLastNodeinTour(recvBuffer, &count)){
-		//isAlready visited True we got nothing to update except to print the message
-		if(!isAlreadyVisited(sourceAddr)){
-			//call ARP before pinging to get MAC address
-			//Join mulitcast group ping the previous source
-			//Since this is the last node there is no harm even need to add source to isVisited
-			joinMulticastgroup(sockfd[0]);
-			inititatePing(recvBuffer);
-			//send Mulitcast Message
 
-		}
-		else{
-			//send Multicast message
-		}
-	}
-	else{
-		if(!isAlreadyVisited(sourceAddr)){
-			//Join mulitcast group ping the previous source and add the Source to isVisited
-			addnodetoVisited(sourceAddr);
-		}
-		else{
-			//do nothing
-		}
-	}
+
+
+void initateTour(int rt,int argc,char *argv[]) {
+	tourInfo startTI = contstructIntTourPacket(argc,argv);
+	char *tourPayload =buildTourPayload(startTI);
+	char* ipPacket= allocate_strmem(MTU);
+	buildTourIPMessage( tourPayload, startTI.tourAddresses[1], ipPacket);
+	free(tourPayload );
+	send_packet(rt,ipPacket);
+	free(ipPacket);
 }
