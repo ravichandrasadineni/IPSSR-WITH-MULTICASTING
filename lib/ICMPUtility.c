@@ -176,6 +176,18 @@ void buildIP(char* ipString) {
 	buildIcmp(ipString+IPHEADER_LENGTH);
 }
 
+void printneighbours(){
+	neighbours *currentPosition = head;
+	if(currentPosition == NULL){
+		printf("The neighbours list is empty\n");
+		return;
+	}
+	printf("The neighbours are \t");
+	while(currentPosition != NULL){
+		printf("%s", currentPosition->ipAddress);
+		currentPosition = currentPosition->next;
+	}
+}
 
 void sendIcmpMessages() {
 	char * frame = (char *)allocate_void(MTU);
@@ -188,6 +200,8 @@ void sendIcmpMessages() {
 		return;
 	}
 	neighbours* currentPosition = head;
+	printf("ICMPUtility.c : Before sending ICMP messages :");
+	printneighbours();
 	while(currentPosition!=NULL) {
 		hwaddr hardwareAddress;
 		struct sockaddr_in ipAddress;
