@@ -21,7 +21,7 @@
 #define MULTICAST_NOT_SET -1
 #define IPADDR_LEN 4
 #define ETHERNET0 "eth0"
-#define ICMPID "54581"
+#define ICMPID 54581
 #define MULTICAST_MESSAGE "HELLO"
 #define ETH_TYPE 4581
 #define ARP_HDRLEN 28
@@ -45,7 +45,7 @@ static const char BRODCAST_MAC[HADDR_LEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 #define IP_FRAME_LENGTH 1514
 #define DELIMITER ":::"
 #define MULTICASTADDR "225.0.0.1"
-#define MULTICASTPORT "1036"
+#define MULTICASTPORT 1036
 #define TTL 1
 #define IPPROTO_CONSTANT 127
 #define MTU 1536

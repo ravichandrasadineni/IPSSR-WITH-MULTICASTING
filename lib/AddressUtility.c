@@ -37,3 +37,8 @@ void getIpAddressFromDomainName(char* string, char* ipAddress) {
     strncpy(ipAddress,ip_address, INET_ADDRSTRLEN);
 }
 
+char* getDomainNameFromIpAddress(struct in_addr ipAddress) {
+	struct hostent *he;
+	he =  gethostbyaddr(&ipAddress, sizeof(struct sockaddr_in),AF_INET);
+	return he->h_name;
+}

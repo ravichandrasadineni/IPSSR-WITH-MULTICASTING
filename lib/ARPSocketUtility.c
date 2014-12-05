@@ -51,27 +51,6 @@ void setReadSetForOpenSockets(fd_set* readSet, int* maxfd) {
 	}
 }
 
-
-int isEth0(char* name) {
-	if(!strncmp(ETHERNET0,name,16)) {
-		return 1;
-	}
-	return 0;
-}
-
-int getEth0Index() {
-	struct hwa_info	*hwa, *hwahead;
-	for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
-		if (isEth0(hwa->if_name)) {
-			free_hwa_info(hwahead);
-			return hwa->if_index;
-		}
-	}
-
-	return -1;
-}
-
-
 int createNewSocket() {
 	int s = socket(PF_PACKET, SOCK_RAW,htons(ETH_TYPE));
 	if(s == -1) {

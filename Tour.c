@@ -6,6 +6,7 @@
  */
 #include "lib/TourUtility.h"
 #include "lib/Constants.h"
+#include "lib/ICMPUtility.h"
 #include "lib/MemoryAllocator.h"
 #include "lib/TourSocketUtility.h"
 
@@ -13,9 +14,6 @@ int main(int argc, char* argv[]){
 	int i, on=1, rt, pg, includeHeader = 1, donotincludeHeader = 0;
 	int multicastListeningSocket = MULTICAST_NOT_SET;
 	int multicastSendingSocket = createSendingSocket();
-	char Payload[MTU];
-	char *recvBuffer, sendBuffer[MTU];
-	memset(Payload,'\0',MTU);
 	pg = createICMPSocket();
 	rt = createTourSocket();
 	struct timeval* tv = NULL;
@@ -47,7 +45,7 @@ int main(int argc, char* argv[]){
 			char* message = recv_packet(rt);
 			tourInfo ti = breakTourPayload(message);
 			if(isLastNode(ti) ) {
-				if(isVisited(ti)){
+				if(isAlreadyNeighbour(ti)){
 					//Send Multicast message
 					sendMultiCastMessage(multicastListeningSocket);
 				}
@@ -59,11 +57,11 @@ int main(int argc, char* argv[]){
 					//Send Multicast message
 					sendMultiCastMessage(multicastListeningSocket);
 					//Add source to Visite (Not needed)
-					addsourcetoVisited(ti);
+					addNeighbours(ti);
 				}
 
 			} else {//Not last node
-				if(isVisited(ti)){
+				if(isAlreadyNeighbour(ti)){
 					//forward message
 					forwardTourIPPacket(rt, ti);
 				}
@@ -73,7 +71,7 @@ int main(int argc, char* argv[]){
 					//send ping message to source node
 					sendIcmpMessages();
 					//Add source address to isVisited
-					addsourcetoVisited(ti);
+					addNeighbours(ti);
 					//forward message
 					forwardTourIPPacket(rt, ti);
 

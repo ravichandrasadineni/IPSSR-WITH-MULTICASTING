@@ -10,10 +10,11 @@
 #include "Constants.h"
 #include "unp.h"
 #include "MemoryAllocator.h"
+#include "TourSocketUtility.h"
 int createMultiCastListeningsocket();
 int  createSendingSocket();
 int createListeningsocket();
-void recvAndReplyMulticastMessage(int sockfd);
+void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd);
 
 
 #endif /* LIB_MULTICASTUTILITY_H_ */

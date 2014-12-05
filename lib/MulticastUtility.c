@@ -65,7 +65,7 @@ void sendMultiCastMessage(int sockFd) {
 	groupSock.sin_family = AF_INET;
 	groupSock.sin_addr.s_addr = inet_addr(MULTICASTADDR);
 	groupSock.sin_port = htons(MULTICASTPORT);
-	if(sendto(sockFd, MULTICAST_MESSAGE, datalen, 0, (struct sockaddr*)&groupSock, sizeof(groupSock)) < 0){
+	if(sendto(sockFd, MULTICAST_MESSAGE, strlen(MULTICAST_MESSAGE), 0, (struct sockaddr*)&groupSock, sizeof(groupSock)) < 0){
 		perror("Sending datagram message error");}
 	else
 		printf("Sending datagram message...OK\n");

@@ -20,27 +20,16 @@
 #include "MemoryAllocator.h"
 #include <netinet/ip.h>
 #include <netinet/udp.h>
-#include <netpacket/packet.h>
 #include "AddressUtility.h"
 #include "unp.h"
+#include "TourSocketUtility.h"
+#include "ICMPUtility.h"
 
-struct tourInfo {
-	int count;
-	int currentPosition;
-	char* tourAddresses[INET_ADDRSTRLEN];
-	char multicastAddress[INET_ADDRSTRLEN];
-	int multicastPort;
-};
-typedef struct tourInfo tourInfo;
 
-struct Visited{
-	char sourceAddress[INET_ADDRSTRLEN];
-	struct Visited *next;
-};
-typedef struct Visited Visited;
+
+
 
 void forwardTourIPPacket(int rt, tourInfo ti);
-int isVisited(tourInfo ti);
 void addsourcetoVisited(tourInfo ti);
 tourInfo breakTourPayload(char *Message);
 char* buildTourPayload(tourInfo ti);

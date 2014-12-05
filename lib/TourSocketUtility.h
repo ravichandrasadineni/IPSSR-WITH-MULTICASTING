@@ -11,10 +11,12 @@
 #include "unp.h"
 #include"Constants.h"
 #include <linux/if_ether.h>
-#include "Asgn3_code/hw_addrs.h"
+#include <linux/if_packet.h>
+#include "ICMPUtility.h"
+#include "GenericUtility.h"
 
 int createICMPSocket();
-int getEth0Index();
+
 void populateEth0Mac(char macAddress[HADDR_LEN]);
 int createTourSocket();
 int createPFPacketSocket() ;

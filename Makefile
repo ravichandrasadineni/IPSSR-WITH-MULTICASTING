@@ -32,7 +32,7 @@ FLAGS = -g -O0
 CFLAGS = ${FLAGS} -I unpv13e/lib
 
 all:rsadineni_arp  rsadineni_Tour test
-OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o AddressUtility.o FrameSendRecvUtility.o ARPAPI.o ArpCache.o PacketSendRecvUtility.o TourUtility.o 
+OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o AddressUtility.o FrameSendRecvUtility.o ARPAPI.o ArpCache.o PacketSendRecvUtility.o TourUtility.o TourSocketUtility.o ICMPUtility.o MulticastUtility.o
 
 
 rsadineni_Tour: Tour.o ${OBJECTS}
@@ -78,8 +78,17 @@ get_hw_addrs.o: lib/Asgn3_code/get_hw_addrs.c
 ARPUDSUtility.o: lib/ARPUDSUtility.c
 	${CC} ${CFLAGS} -c lib/ARPUDSUtility.c
 
+TourSocketUtility.o: lib/TourSocketUtility.c
+	${CC} ${CFLAGS} -c lib/TourSocketUtility.c
+
 TourUtility.o: lib/TourUtility.c
 	${CC} ${CFLAGS} -c lib/TourUtility.c
+	
+MulticastUtility.o: lib/MulticastUtility.c
+	${CC} ${CFLAGS} -c lib/MulticastUtility.c
+	
+ICMPUtility.o: lib/ICMPUtility.c
+	${CC} ${CFLAGS} -c lib/ICMPUtility.c
 
 PacketSendRecvUtility.o: lib/PacketSendRecvUtility.c
 	${CC} ${CFLAGS} -c lib/PacketSendRecvUtility.c

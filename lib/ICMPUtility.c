@@ -24,15 +24,26 @@ void tv_sub(struct timeval *out, struct timeval *in)
 
 
 
-int isAlreadyNeighbour(char* sourceAddr){
+
+
+
+void populateSourceAddress(tourInfo ti, char sourceAddress[INET_ADDRSTRLEN]){
+	int position = ti.count-1;
+	strncpy(sourceAddress, ti.tourAddresses[position], INET_ADDRSTRLEN);
+}
+
+
+
+int isAlreadyNeighbour(tourInfo ti){
 	struct Visited *temp = head;
+	char sourceAddress[INET_ADDRSTRLEN];
 	if(temp == NULL){
 		return FALSE;
 	}
 	while(temp != NULL){
-		if(!strncmp(temp->ipAddress, sourceAddr, INET_ADDRSTRLEN)){
+		populateSourceAddress(ti,sourceAddress);
+		if(!strncmp(temp->ipAddress,sourceAddress , INET_ADDRSTRLEN)){
 			return TRUE;
-			break;
 		}
 		temp = temp->next;
 	}
@@ -40,10 +51,9 @@ int isAlreadyNeighbour(char* sourceAddr){
 }
 
 
-void addNeighbours(char* sourceAddr){
-	if(isAlreadyVisited(sourceAddr)) {
-		return;
-	}
+void addNeighbours(tourInfo ti) {
+	char sourceAddr[INET_ADDRSTRLEN];
+	populateSourceAddress(ti,sourceAddr);
 	if(head== NULL) {
 		head = (neighbours*)allocate_void(sizeof(neighbours));
 		tail = head;
@@ -118,7 +128,7 @@ uint16_t icmpv4_cksum(uint16_t *addr, int len)
 void buildIcmp(char *icmpString) {
 	int			len;
 	struct icmp	*icmp;
-	icmp = (struct icmp *) sendbuf;
+	icmp = (struct icmp *) icmpString;
 	icmp->icmp_type = ICMP_ECHO;
 	icmp->icmp_code = 0;
 	icmp->icmp_id = ICMPID;
@@ -135,7 +145,7 @@ void buildIcmp(char *icmpString) {
 void buildIP(char* ipString) {
 	struct ip *iphdr;
 	int ip_flags[4];
-	iphdr = (iphdr*)ipString;
+	iphdr = (struct ip*)ipString;
 	iphdr->ip_hl = IP4_HDRLEN / sizeof (uint32_t);
 	iphdr->ip_v = IPVERSION;
 	iphdr->ip_tos = 0;
@@ -162,7 +172,7 @@ void buildIP(char* ipString) {
 	}
 
 	iphdr->ip_sum = 0;
-	iphdr.ip_sum = ipChecksum((uint16_t *) iphdr, IP4_HDRLEN);
+	iphdr->ip_sum = ipChecksum((uint16_t *) iphdr, IP4_HDRLEN);
 	buildIcmp(ipString+IPHEADER_LENGTH);
 }
 
@@ -184,7 +194,7 @@ void sendIcmpMessages() {
 		inet_aton(currentPosition->ipAddress,&ipAddress.sin_addr);
 		areq ((SA*)&ipAddress,sizeof(ipAddress) ,  &hardwareAddress);
 		memcpy(eth->h_source,hardwareAddress.sll_addr,HADDR_LEN);
-		buildIP(eth+1);
+		buildIP((char*)(eth+1));
 		int outgoingInf = getEth0Index();
 		int socket = createPFPacketSocket();
 		bindPfPacketSocket(socket,  outgoingInf);
@@ -220,13 +230,9 @@ void procICMPv4(char *ptr )
 		rtt = tvrecv.tv_sec * 1000.0 + tvrecv.tv_usec / 1000.0;
 
 		printf("%d bytes from %s: seq=%u, ttl=%d, rtt=%.3f ms\n",
-				icmplen, Sock_ntop_host(pr->sarecv, pr->salen),
+				icmplen, getDomainNameFromIpAddress(ip->ip_src),
 				icmp->icmp_seq, ip->ip_ttl, rtt);
 
-	} else if (verbose) {
-		printf("  %d bytes from %s: type = %d, code = %d\n",
-				icmplen, Sock_ntop_host(pr->sarecv, pr->salen),
-				icmp->icmp_type, icmp->icmp_code);
 	}
 }
 

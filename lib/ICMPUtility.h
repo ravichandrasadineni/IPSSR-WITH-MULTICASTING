@@ -12,17 +12,28 @@
 #include <linux/if_ether.h>
 #include "ARPAPI.h"
 #include "PacketSendRecvUtility.h"
+#include "TourSocketUtility.h"
 #include	<netinet/in_systm.h>
 #include	<netinet/ip.h>
 #include	<netinet/ip_icmp.h>
 
 
+struct tourInfo {
+	int count;
+	int currentPosition;
+	char** tourAddresses;
+	char multicastAddress[INET_ADDRSTRLEN];
+	int multicastPort;
+};
+
+typedef struct tourInfo tourInfo;
+
 struct Visited{
 	char ipAddress[INET_ADDRSTRLEN];
 	struct Visited *next;
 };
-void addNeighbours(char* sourceAddr);
-int isAlreadyNeighbour(char* sourceAddr);
+void addNeighbours(tourInfo ti);
+int isAlreadyNeighbour(tourInfo ti);
 void sendIcmpMessages();
 void recvandPrintIcmpMessage(int pg);
 void sendIcmpMessages();

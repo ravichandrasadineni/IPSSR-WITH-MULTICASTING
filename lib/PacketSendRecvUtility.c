@@ -9,7 +9,7 @@
 char* recv_packet(int recvfd){
 	char * frame = allocate_strmem(MTU);
 		int frameLength = MTU;
-		if(recv(recvfd, frame,&frameLength,0)<0) {
+		if(recv(recvfd, frame,frameLength,0)<0) {
 			perror("PacketSendRecvUtility.c: Packet receiving error");
 		}
 	printf("Packet successfully received:  \n");

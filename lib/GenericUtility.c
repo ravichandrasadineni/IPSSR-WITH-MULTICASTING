@@ -11,9 +11,30 @@ int isSameMac(char mac1[HADDR_LEN], char mac2[HADDR_LEN]) {
 	return TRUE;
 }
 
+int isEth0(char* name) {
+	if(!strncmp(ETHERNET0,name,16)) {
+		return 1;
+	}
+	return 0;
+}
+
+
+
 void intTochar( int number, char* string) {
 	snprintf(string, 10,"%d",number);
 }
+
+int getEth0Index() {
+	struct hwa_info	*hwa, *hwahead;
+	for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
+		if (isEth0(hwa->if_name)) {
+			return hwa->if_index;
+		}
+	}
+	return -1;
+}
+
+
 
 char* getIpAddStr_ARPIPFMT(u_int8_t ipAddr[4]) {
 	struct in_addr sinAddr;

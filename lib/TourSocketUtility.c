@@ -8,15 +8,10 @@
 #include "TourSocketUtility.h"
 
 
-int isEth0(char* name) {
-	if(!strncmp(ETHERNET0,name,16)) {
-		return 1;
-	}
-	return 0;
-}
+
 
 void populateEth0Mac(char macAddress[HADDR_LEN]) {
-	memset(macAddress,"\0",HADDR_LEN);
+	memset(macAddress,'\0',HADDR_LEN);
 	struct hwa_info	*hwa, *hwahead;
 		for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
 			if (isEth0(hwa->if_name)) {
@@ -41,15 +36,7 @@ char* getEth0IpAddress() {
 	return NULL;
 }
 
-int getEth0Index() {
-	struct hwa_info	*hwa, *hwahead;
-	for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
-		if (isEth0(hwa->if_name)) {
-			return hwa->if_index;
-		}
-	}
-	return -1;
-}
+
 
 
 

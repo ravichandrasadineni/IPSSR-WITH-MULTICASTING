@@ -1,16 +1,23 @@
 #include "TourUtility.h"
 
-Visited *head = NULL;
-Visited *tail = NULL;
+char** allocateINETADDRMemory(int count) {
+	int i;
+	char ** tourArray;
+	tourArray = (char **)allocate_void(count *sizeof(char*));
+	for( i=0; i<count;i++) {
+		tourArray[i] = allocate_strmem(INET_ADDRSTRLEN);
+	}
+	return tourArray;
+}
 
-Visited alreadyVisited;
+
 
 tourInfo contstructIntTourPacket(int argc ,char *argv[]) {
 	int i;
 	char hostname[1024];
 	tourInfo ti;
 	ti.count = argc;
-	ti.tourAddresses = (char* [INET_ADDRSTRLEN])allocate_strmem(ti.count *INET_ADDRSTRLEN);
+	ti.tourAddresses = allocateINETADDRMemory(ti.count);
 	ti.currentPosition = 0;
 	strncpy(ti.multicastAddress, MULTICASTADDR, INET_ADDRSTRLEN);
 	intTochar(ti.multicastPort, MULTICASTPORT);
@@ -61,7 +68,7 @@ tourInfo breakTourPayload(char *packetMessage) {
 	ti.count= atoi(strtok(PacketToken, DELIMETER));
 	ti.currentPosition = atoi(strtok(NULL, DELIMETER));
 	ti.currentPosition  += 1;
-	ti.tourAddresses = (char* [INET_ADDRSTRLEN])allocate_strmem(ti.count *INET_ADDRSTRLEN);
+	ti.tourAddresses = allocateINETADDRMemory(ti.count);
 	int i;
 	for(i=0; i<ti.count;i++) {
 		strncpy(ti.tourAddresses[i],strtok(PacketToken, DELIMETER), INET_ADDRSTRLEN);
@@ -78,50 +85,10 @@ int isLastNode(tourInfo tI) {
 	return FALSE;
 }
 
-void getsourceAddress(tourInfo ti, char sourceAddress[INET_ADDRSTRLEN]){
-	int position = ti.count-1;
-	strncpy(sourceAddress, ti.tourAddresses[position], INET_ADDRSTRLEN);
-}
 
-void addsourcetoVisited(tourInfo ti){
-	int position = ti.count;
-	char sourceAddr[INET_ADDRSTRLEN];
-	getsourceAddress(ti, sourceAddr);
-	Visited *tmp = tail;
-	Visited *newNode=malloc(sizeof(Visited));
-	strncpy(newNode->sourceAddress, sourceAddr, INET_ADDRSTRLEN);
-	newNode->next=NULL;
-	if(tmp == NULL)
-	{
-		tmp = newNode;
-	}
-	else
-	{
-		while(tmp->next!=NULL)
-		{
-			tmp=tmp->next;
-		}
-		tmp->next=newNode;
-	}
-}
 
-int isVisited(tourInfo ti){
-	Visited *tmp = head;
-	char sourceAddr[INET_ADDRSTRLEN];
-	getsourceAddress(ti, sourceAddr);
-	if(tmp == NULL){
-		return FALSE;
-	}
-	else{
-		while(tmp != NULL){
-			if(!strncmp(tmp->sourceAddress, sourceAddr, INET_ADDRSTRLEN)){
-				return TRUE;
-			}
-			tmp = tmp->next;
-		}
-	}
-	return FALSE;
-}
+
+
 
 
 uint16_t
@@ -194,3 +161,4 @@ void initateTour(int rt,int argc,char *argv[]) {
 	send_packet(rt,ipPacket);
 	free(ipPacket);
 }
+
