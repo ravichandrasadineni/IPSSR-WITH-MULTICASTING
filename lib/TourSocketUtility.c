@@ -28,8 +28,9 @@ char* getEth0IpAddress() {
 	for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
 		if (isEth0(hwa->if_name)) {
 			struct sockaddr_in *ipAddress = (struct sockaddr_in *)hwa->ip_addr;
+			char *ipAddressString =  inet_ntoa(ipAddress->sin_addr);
 			free_hwa_info(hwahead);
-			return inet_ntoa(ipAddress->sin_addr);
+			return ipAddressString;
 		}
 	}
 	free_hwa_info(hwahead);
@@ -59,7 +60,7 @@ int createICMPSocket(){
 		perror("Bind failed :");
 		exit(0);
 	}
-	printf("Binded Socket\n");
+	printf("TourSocketUtility.c :created ICMP Listening Socket %d \n", sockfd);
 	return sockfd;
 }
 
@@ -69,7 +70,7 @@ int createTourSocket() {
 	char localAddr[INET_ADDRSTRLEN];
 
 	if( (sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_CONSTANT)) < 0){
-		perror("Creating IPRAW Socket Failed:");
+		perror("TourSocketUtility.c :Creating IPRAW Socket Failed:");
 		exit(0);
 	}
 	setsockopt(sockfd, IPPROTO_IP, IP_HDRINCL, &on,sizeof(on));
@@ -78,14 +79,14 @@ int createTourSocket() {
 	tourAddr.sin_family = AF_INET;
 	populateLocalAddress(localAddr);
 	if(inet_pton(AF_INET, localAddr, &(tourAddr.sin_addr.s_addr)) < 0){
-		perror("inet_pton failed :");
+		perror("TourSocketUtility.c :inet_pton failed :");
 		exit(0);
 	}
 	if( bind(sockfd, (struct sockaddr *)&tourAddr, sizeof(tourAddr)) < 0){
-		perror("Bind failed :");
+		perror("TourSocketUtility.c :Bind failed :");
 		exit(0);
 	}
-	printf("Binded Socket\n");
+	printf("TourSocketUtility.c :created Tour Sending Socket %d \n", sockfd);
 	return sockfd;
 }
 

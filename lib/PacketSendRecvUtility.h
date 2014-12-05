@@ -13,6 +13,7 @@
 #include<netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "MemoryAllocator.h"
 
 char* recv_packet(int recvfd);
 void send_packet(int sendfd, char* sendBuff);

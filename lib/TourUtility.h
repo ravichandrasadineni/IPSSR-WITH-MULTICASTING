@@ -31,11 +31,12 @@
 
 void forwardTourIPPacket(int rt, tourInfo ti);
 void addsourcetoVisited(tourInfo ti);
-tourInfo breakTourPayload(char *Message);
+tourInfo breakTourPayload(char *Message, int*);
 char* buildTourPayload(tourInfo ti);
+tourInfo breakTourPayload(char *packetMessage, int* isMyPacket);
 void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADDRSTRLEN], char* Message);
 tourInfo contstructIntTourPacket(int argc, char *argv[]);
 int isLastNode(tourInfo tI);
-
+void printTourUtility (tourInfo ti);
 
 #endif /* LIB_TOURUTILITY_H_ */

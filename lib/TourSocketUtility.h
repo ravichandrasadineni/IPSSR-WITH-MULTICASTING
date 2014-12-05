@@ -10,8 +10,7 @@
 
 #include "unp.h"
 #include"Constants.h"
-#include <linux/if_ether.h>
-#include <linux/if_packet.h>
+#include <netinet/if_ether.h>
 #include "ICMPUtility.h"
 #include "GenericUtility.h"
 

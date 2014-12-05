@@ -9,9 +9,10 @@
 #define LIB_ICMPUTILITY_H_
 #include "Constants.h"
 #include "unp.h"
-#include <linux/if_ether.h>
+#include <netinet/if_ether.h>
 #include "ARPAPI.h"
 #include "PacketSendRecvUtility.h"
+#include "AddressUtility.h"
 #include "TourSocketUtility.h"
 #include	<netinet/in_systm.h>
 #include	<netinet/ip.h>

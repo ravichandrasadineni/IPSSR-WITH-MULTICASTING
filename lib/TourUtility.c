@@ -20,14 +20,14 @@ tourInfo contstructIntTourPacket(int argc ,char *argv[]) {
 	ti.tourAddresses = allocateINETADDRMemory(ti.count);
 	ti.currentPosition = 0;
 	strncpy(ti.multicastAddress, MULTICASTADDR, INET_ADDRSTRLEN);
-	intTochar(ti.multicastPort, MULTICASTPORT);
-	if (gethostname(hostname, 1023) < 0){
-		perror("TourUtility.c : gethostname failed :");
-		exit(0);
-	}
-	strncpy(ti.tourAddresses[0],hostname, INET_ADDRSTRLEN);
+	ti.multicastPort = MULTICASTPORT;
+	char localAddress[INET_ADDRSTRLEN];
+	populateLocalAddress(localAddress);
+	strncpy(ti.tourAddresses[0],localAddress, INET_ADDRSTRLEN);
 	for(i=1; i<argc;i++) {
-		strncpy(ti.tourAddresses[i],argv[i], INET_ADDRSTRLEN);
+		char currIpAddress[INET_ADDRSTRLEN];
+		getIpAddressFromDomainName(argv[i],currIpAddress);
+		strncpy(ti.tourAddresses[i],currIpAddress, INET_ADDRSTRLEN);
 	}
 	return ti;
 }
@@ -46,20 +46,27 @@ char* buildTourPayload(tourInfo ti) {
 	memset(tourPayload, '\0',TOUR_PACKET_LENGTH);
 	strncpy(tourPayload,countString,4);
 	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
-	strncpy(tourPayload,currentPositionString,4);
+	strncat(tourPayload,currentPositionString,4);
 	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
 	for(i=0;i<ti.count;i++) {
-		strncpy(tourPayload,ti.tourAddresses[i],INET_ADDRSTRLEN);
+		strncat(tourPayload,ti.tourAddresses[i],INET_ADDRSTRLEN);
 		strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
 	}
-	strncpy(tourPayload,ti.multicastAddress,INET_ADDRSTRLEN);
+	strncat(tourPayload,ti.multicastAddress,INET_ADDRSTRLEN);
 	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
-	strncpy(tourPayload,multicastPortString,4);
+	strncat(tourPayload,multicastPortString,4);
+	printf("Tour Payload is %s \n", tourPayload);
 	return tourPayload;
 }
 
-tourInfo breakTourPayload(char *packetMessage) {
+tourInfo breakTourPayload(char *packetMessage, int* isMyPacket) {
 	struct ip  *ipHdr = (struct ip *)packetMessage;
+	if(ipHdr->ip_id==IP_IDENTIFICATION) {
+		*isMyPacket =TRUE;
+	}
+	else  {
+		*isMyPacket =FALSE;
+	}
 	packetMessage = packetMessage+sizeof(struct iphdr);
 	tourInfo ti;
 	char PacketToken[TOUR_PACKET_LENGTH];
@@ -118,21 +125,30 @@ ip_Checksum (uint16_t *addr, int len)
 
 void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADDRSTRLEN], char* Message){
 	struct ip *ipHdr;
+	struct ip ipHdr2;
+	int status;
 	ipHdr = (struct ip *)Message;
 	ipHdr->ip_v = IPVERSION;
 	ipHdr->ip_hl = sizeof(struct iphdr)>>2;
 	ipHdr->ip_ttl = 255;
 	ipHdr->ip_tos = 0;
 	ipHdr->ip_sum = 0;
-	if (( inet_pton (AF_INET, getEth0IpAddress(), &(ipHdr->ip_src))) != 1) {
-		perror("TourUtility.C source address conversion failed");
-		exit (EXIT_FAILURE);
-	}
-	if (( inet_pton (AF_INET, destAddr, &(ipHdr->ip_dst))) != 1) {
+
+	if ((status = inet_pton (AF_INET, destAddr, &ipHdr->ip_dst)) != 1) {
 		perror("TourUtility.C destination address conversion failed");
 		exit (EXIT_FAILURE);
 	}
-	ipHdr->ip_p = htons(IP_PROTOCOL);
+
+	if (( status = inet_pton (AF_INET, getEth0IpAddress(), &ipHdr->ip_src)) != 1) {
+		perror("TourUtility.C source address conversion failed");
+		exit (EXIT_FAILURE);
+	}
+	char destIpAddress[INET_ADDRSTRLEN];
+	char sourceIpAddress[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &(ipHdr->ip_dst), destIpAddress, INET_ADDRSTRLEN);
+	inet_ntop(AF_INET, &(ipHdr->ip_src), sourceIpAddress, INET_ADDRSTRLEN);
+	printf("IP Packet : source : %s, destination : %s, ", sourceIpAddress,destIpAddress);
+	ipHdr->ip_p = IP_PROTOCOL;
 	ipHdr->ip_len = htons (IP4_HDRLEN + TOUR_PACKET_LENGTH);
 	ipHdr->ip_id = htons(IP_IDENTIFICATION);
 	ipHdr->ip_sum = 0;
@@ -145,18 +161,32 @@ void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADD
 void forwardTourIPPacket(int rt, tourInfo ti){
 	char *tourPayload = buildTourPayload(ti);
 	char *ipPacket = allocate_strmem(MTU);
-	buildTourIPMessage(tourPayload, ti.tourAddresses[ti.count], ipPacket);
+	buildTourIPMessage(tourPayload, ti.tourAddresses[ti.currentPosition +1], ipPacket);
 	free(tourPayload);
 	send_packet(rt, ipPacket);
 	free(ipPacket);
 }
 
+void printTourUtility (tourInfo ti) {
+	printf("Count : %d \t ",ti.count);
+	printf("Cp: %d \t ",ti.currentPosition);
+	printf("MA: %s \t ",ti.multicastAddress);
+	printf("Mp: %d \n ",ti.multicastPort);
+	int i;
+	for(i=0;i<ti.count;i++) {
+		printf ("%s \t", ti.tourAddresses[i]);
+	}
+}
+
+
 
 void initateTour(int rt,int argc,char *argv[]) {
 	tourInfo startTI = contstructIntTourPacket(argc,argv);
+	printf("TourUtiltiy.c :TourInfo in initate TOur");
+	printTourUtility(startTI);
 	char *tourPayload =buildTourPayload(startTI);
 	char* ipPacket= allocate_strmem(MTU);
-	buildTourIPMessage( tourPayload, startTI.tourAddresses[1], ipPacket);
+	buildTourIPMessage( tourPayload, startTI.tourAddresses[startTI.currentPosition +1], ipPacket);
 	free(tourPayload );
 	send_packet(rt,ipPacket);
 	free(ipPacket);

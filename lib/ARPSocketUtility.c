@@ -47,7 +47,8 @@ void setReadSetForOpenSockets(fd_set* readSet, int* maxfd) {
 	int i ;
 	for (i=0; i<currentOpenSocketListSize; i++) {
 		FD_SET(openSocketList[i],readSet);
-		maxfd = MAX(maxfd,openSocketList[i]);
+
+		*maxfd = MAX(*maxfd,openSocketList[i]);
 	}
 }
 

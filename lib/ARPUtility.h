@@ -11,7 +11,7 @@
 #include "Constants.h"
 #include "GenericUtility.h"
 #include "MemoryAllocator.h"
-
+#include <net/if_arp.h>
 #include "unp.h"
 #include "ARPSocketUtility.h"
 

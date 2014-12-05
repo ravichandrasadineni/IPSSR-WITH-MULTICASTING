@@ -10,10 +10,12 @@
 
 
 int areq (struct sockaddr *IPaddr, socklen_t sockaddrlen, struct hwaddr *HWaddr) {
+
 	int clientSocket = getARPclientBindedsocket();
 	connectToARP(clientSocket);
 	struct sockaddr_in* ipAddress = (struct sockaddr_in *)IPaddr;
 	char* ipAddressString = inet_ntoa(ipAddress->sin_addr);
+	printf("ARPAPI.c : MAC ADDRESS Requested for destination : %s \n  ",ipAddressString);
 	char* message = marshallMessage(ipAddressString,BRODCAST_MAC);
 	struct timeval tv;
 	int maxfd=0;
@@ -34,7 +36,12 @@ int areq (struct sockaddr *IPaddr, socklen_t sockaddrlen, struct hwaddr *HWaddr)
 		HWaddr->sll_halen = HADDR_LEN;
 		HWaddr->sll_ifindex = getEth0Index();
 		HWaddr->sll_hatype = ETHERNET;
+		printf("ARPAPI.c : MAC ADDRESS for destination : %s  is   ",ipAddressString);
+		printMacAddress(HWaddr->sll_addr );
+		printf("\n");
+		return 1;
 	} else {
+		printf("ARPAPI.c : MAC ADDRESS retrieval failed");
 		return -1;
 	}
 	unLinkSocket(clientSocket);

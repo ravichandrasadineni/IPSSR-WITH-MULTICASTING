@@ -11,11 +11,9 @@
 #include "unp.h"
 #include "MemoryAllocator.h"
 #include <sys/socket.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>
-#include <linux/if_arp.h>
 #include "GenericUtility.h"
-
+#include <net/ethernet.h>
+#include <netpacket/packet.h>
 
 struct interfacefInfo {
 	char    if_haddr[HADDR_LEN];	/* hardware address */

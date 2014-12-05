@@ -15,6 +15,7 @@ int createMultiCastListeningsocket();
 int  createSendingSocket();
 int createListeningsocket();
 void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd);
+void handleMulticasting(int listeningSocket, int readSocket) ;
 
 
 #endif /* LIB_MULTICASTUTILITY_H_ */

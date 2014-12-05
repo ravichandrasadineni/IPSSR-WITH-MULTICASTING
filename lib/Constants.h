@@ -22,12 +22,13 @@
 #define IPADDR_LEN 4
 #define ETHERNET0 "eth0"
 #define ICMPID 54581
-#define MULTICAST_MESSAGE "HELLO"
+#define MULTICAST_MESSAGE_INIT 1
+#define MULTICAST_MESSAGE_REP  2
 #define ETH_TYPE 4581
 #define ARP_HDRLEN 28
 #define ETH_TYPE_LEN 2
 #define TRUE  1
-#define IP_PROTOCOL 127
+#define IP_PROTOCOL 112
 #define FALSE  0
 #define ETHERNET 1
 #define INETP_LEN 4

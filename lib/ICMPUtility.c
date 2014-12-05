@@ -192,8 +192,10 @@ void sendIcmpMessages() {
 		hwaddr hardwareAddress;
 		struct sockaddr_in ipAddress;
 		inet_aton(currentPosition->ipAddress,&ipAddress.sin_addr);
-		areq ((SA*)&ipAddress,sizeof(ipAddress) ,  &hardwareAddress);
-		memcpy(eth->h_source,hardwareAddress.sll_addr,HADDR_LEN);
+		if(areq ((SA*)&ipAddress,sizeof(ipAddress) ,  &hardwareAddress)<0) {
+			printf("ICMPUTILTIY.c :Mac address retrieval failed. Aborting sending ICMP messages \n");
+		}
+		memcpy(eth->h_dest,hardwareAddress.sll_addr,HADDR_LEN);
 		buildIP((char*)(eth+1));
 		int outgoingInf = getEth0Index();
 		int socket = createPFPacketSocket();
@@ -229,7 +231,7 @@ void procICMPv4(char *ptr )
 		tv_sub(&tvrecv, tvsend);
 		rtt = tvrecv.tv_sec * 1000.0 + tvrecv.tv_usec / 1000.0;
 
-		printf("%d bytes from %s: seq=%u, ttl=%d, rtt=%.3f ms\n",
+		printf("%d bytes from %s: seq=%d, ttl=%d, rtt=%.3f ms\n",
 				icmplen, getDomainNameFromIpAddress(ip->ip_src),
 				icmp->icmp_seq, ip->ip_ttl, rtt);
 

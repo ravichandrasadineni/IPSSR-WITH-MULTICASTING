@@ -31,12 +31,12 @@ FLAGS = -g -O0
 
 CFLAGS = ${FLAGS} -I unpv13e/lib
 
-all:rsadineni_arp  rsadineni_Tour test
+all:rsadineni_arp  rsadineni_Tour
 OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o AddressUtility.o FrameSendRecvUtility.o ARPAPI.o ArpCache.o PacketSendRecvUtility.o TourUtility.o TourSocketUtility.o ICMPUtility.o MulticastUtility.o
 
 
 rsadineni_Tour: Tour.o ${OBJECTS}
-	${CC} ${FLAGS} -o hellanti_Tour Tour.o ${OBJECTS} ${LIBS}
+	${CC} ${FLAGS} -o rsadineni_Tour Tour.o ${OBJECTS} ${LIBS}
 
 rsadineni_arp: ARP.o $(OBJECTS)
 	${CC} ${FLAGS} -o rsadineni_arp ARP.o $(OBJECTS) ${LIBS}

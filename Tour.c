@@ -8,58 +8,80 @@
 #include "lib/Constants.h"
 #include "lib/ICMPUtility.h"
 #include "lib/MemoryAllocator.h"
+#include "lib/GenericUtility.h"
 #include "lib/TourSocketUtility.h"
+
+int ISLASTNODEANDWAITED=FALSE;
+
+static void sig_alarm(int signo) {
+	printf("Timed Out \n");
+	ISLASTNODEANDWAITED = TRUE;
+}
+
+
 
 int main(int argc, char* argv[]){
 	int i, on=1, rt, pg, includeHeader = 1, donotincludeHeader = 0;
+	struct timeval pTV;
+	pTV.tv_sec = 1;
+	pTV.tv_usec =0;
 	int multicastListeningSocket = MULTICAST_NOT_SET;
 	int multicastSendingSocket = createSendingSocket();
+	signal(SIGALRM, sig_alarm);
 	pg = createICMPSocket();
 	rt = createTourSocket();
 	struct timeval* tv = NULL;
+	multicastListeningSocket =createMultiCastListeningsocket();
 	if(argc >= 2) {
 		initateTour(rt,argc,argv);
-		multicastListeningSocket =createMultiCastListeningsocket();
+		printf("sent Initial Tour Packet \n");
+
 	}
 	fd_set readSet;
-	FD_ZERO (&readSet);
-	int maxfd = MAX(pg,rt) + 1;
-	FD_SET(pg,&readSet);
-	FD_SET(rt,&readSet);
-	if(argc>=2) {
-		FD_SET(multicastListeningSocket,&readSet);
-	}
-	int returnvalue;
+	int returnvalue, timeoutLastNode;
 	while (1) {
+		FD_ZERO (&readSet);
+		FD_SET(pg,&readSet);
+		FD_SET(rt,&readSet);
+		FD_SET(multicastListeningSocket,&readSet);
+		int maxfd = MAX(pg,rt) ;
+		maxfd = MAX(maxfd,multicastListeningSocket) + 1;
 		if((returnvalue = select(maxfd,&readSet,NULL,NULL,tv))<0) {
-			perror("Tour.c : Select Failed :");
+			if( errno == EINTR){
+				continue;
+			}
+			else {
+				perror("Tour.c : Select Failed :");
+			}
+		}
+		if(ISLASTNODEANDWAITED) {
+			sendMultiCastMessage(multicastSendingSocket,MULTICAST_MESSAGE_INIT);
+			break;
+
 		}
 		if(returnvalue == 0) {
 			sendIcmpMessages();
-
+			tv->tv_sec = 1;
+			tv->tv_usec = 0;
 		}
 		if(FD_ISSET(pg,&readSet)) {
 			recvandPrintIcmpMessage(pg);
 		}
 		if(FD_ISSET(rt,&readSet)) {
 			char* message = recv_packet(rt);
-			tourInfo ti = breakTourPayload(message);
-			if(isLastNode(ti) ) {
-				if(isAlreadyNeighbour(ti)){
-					//Send Multicast message
-					sendMultiCastMessage(multicastListeningSocket);
+			//TO DO : Check IDENTIFICATION NUMBER AND PRINT MESSAGE
+			int isMyPacket;
+			tourInfo ti = breakTourPayload(message, &isMyPacket);
+			if(isMyPacket) {
+				printf("Received my packet \n");
+				if(isLastNode(ti) ) {
+					malarm(5000);
 				}
-				else{
-					//join Multicast group
-					multicastListeningSocket = createMultiCastListeningsocket();
-					//send ping message to source node
-					sendIcmpMessages();
-					//Send Multicast message
-					sendMultiCastMessage(multicastListeningSocket);
-					//Add source to Visite (Not needed)
-					addNeighbours(ti);
+				if(tv !=NULL ) {
+					tv = &pTV;
 				}
-
+				//Add source to Visited (Not needed)
+				addNeighbours(ti);
 			} else {//Not last node
 				if(isAlreadyNeighbour(ti)){
 					//forward message
@@ -79,10 +101,16 @@ int main(int argc, char* argv[]){
 
 			}
 		}
-		if(multicastListeningSocket != MULTICAST_NOT_SET) {
-			if(FD_ISSET(multicastListeningSocket,&readSet)){
-				recvAndReplyMulticastMessage(multicastSendingSocket, multicastListeningSocket);
-			}
+		if (FD_ISSET(multicastListeningSocket,&readSet)) {
+			break;
 		}
+
+
 	}
+
+
+	if(multicastListeningSocket != MULTICAST_NOT_SET) {
+		handleMulticasting( multicastListeningSocket,multicastSendingSocket);
+	}
+
 }

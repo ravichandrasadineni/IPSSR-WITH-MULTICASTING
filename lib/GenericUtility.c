@@ -18,6 +18,25 @@ int isEth0(char* name) {
 	return 0;
 }
 
+unsigned int malarm (unsigned int milliseconds)
+{
+
+	struct itimerval old, new;
+	new.it_interval.tv_usec = 0;
+	new.it_interval.tv_sec = 0;
+	new.it_value.tv_usec = 0;
+	new.it_value.tv_sec = 0;
+	if(milliseconds >= 1000 ) {
+		new.it_value.tv_sec = milliseconds/1000;
+	}
+	new.it_value.tv_usec = (milliseconds%1000)*1000;
+	if (setitimer (ITIMER_REAL, &new, &old) < 0) {
+		perror("setitimer failed ErrorNo :");
+		exit(2);
+	}
+	else
+		return old.it_value.tv_sec;
+}
 
 
 void intTochar( int number, char* string) {

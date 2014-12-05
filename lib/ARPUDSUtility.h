@@ -9,10 +9,7 @@
 #define LIB_ARPUDSUTILITY_H_
 #include "Constants.h"
 #include "unp.h"
-#include <linux/if_ether.h>   // ETH_P_ARP = 0x0806
-#include <linux/if_packet.h>
 #include <net/ethernet.h>
-#include <linux/if_arp.h>
 
 int getConnectedUDSSocket(int sockFd);
 int recvUDSMessage(int sockFd, char * buff);
