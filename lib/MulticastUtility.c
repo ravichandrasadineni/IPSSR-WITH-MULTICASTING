@@ -86,16 +86,20 @@ void sendMultiCastMessage(int sockFd, int type) {
 
 void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
 	char databuf[1024];
-	if(read(recvsockfd, databuf, 1024) < 0)
+	struct sockaddr_in ipAddress;
+	int addrLength = sizeof(struct sockaddr_in);
+	if(recvfrom(recvsockfd, databuf, MTU,0,(SA *)&ipAddress,&addrLength) < 0)
 	{
 		perror("Reading datagram message error");
 		close(recvsockfd);
 		exit(1);
 	}
-	if (databuf[0] == '1') {
+
+	if ((databuf[0] == '1') && (!isMYIP(ipAddress)) ) {
 		sendMultiCastMessage(sendSockfd,MULTICAST_MESSAGE_REP );
 	} else  {
-		//Print
+		printf("Received Multicast Message \n");
+
 	}
 
 }
@@ -112,7 +116,8 @@ void handleMulticasting(int listeningSocket, int readSocket) {
 		maxfd = listeningSocket +1;
 		if((returnValue = select(maxfd,&readSet,NULL,NULL,&pTV))<0) {
 			if( errno == EINTR){
-				//print and exit;
+				printf("Tour Done and Exiting  \n");
+				exit(0);
 			}
 		}
 		if(FD_ISSET(listeningSocket,&readSet)) {

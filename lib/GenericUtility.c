@@ -84,6 +84,8 @@ void printMacAddress (char haddr[HADDR_LEN]) {
 
 
 
+
+
 int isSameIP(char IpAddr1[INET_ADDRSTRLEN], char IpAddr2[INET_ADDRSTRLEN]) {
 	int i;
 	if (!strncmp(IpAddr1, IpAddr2, INET_ADDRSTRLEN)) {
@@ -91,3 +93,12 @@ int isSameIP(char IpAddr1[INET_ADDRSTRLEN], char IpAddr2[INET_ADDRSTRLEN]) {
 	}
 	return FALSE;
 }
+
+int isMYIP (struct sockaddr_in ipAddress) {
+	char localipaddress[INET_ADDRSTRLEN];
+	char receivedipAddr[INET_ADDRSTRLEN];
+	populateLocalIpAddress(localipaddress);
+	inet_ntop(AF_INET, &(ipAddress.sin_addr), receivedipAddr, INET_ADDRSTRLEN);
+	return isSameIP(localipaddress, receivedipAddr);
+}
+

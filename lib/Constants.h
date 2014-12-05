@@ -44,12 +44,10 @@
 static const char BRODCAST_MAC[HADDR_LEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 #define IP_FRAME_LENGTH 1514
-#define DELIMITER ":::"
 #define MULTICASTADDR "225.0.0.1"
 #define MULTICASTPORT 1036
 #define TTL 1
-#define IPPROTO_CONSTANT 127
-#define MTU 1536
+#define MTU 1124
 #define IPHEADER_LENGTH 20
 #define IP_IDENTIFICATION 20008
 #define ICMP_PORT 1036

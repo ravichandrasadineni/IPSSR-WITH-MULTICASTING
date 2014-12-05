@@ -27,7 +27,7 @@ CC = gcc
 
 LIBS = -lresolv -lnsl -pthread -lm unpv13e/libunp.a
 	
-FLAGS = -g -O0
+FLAGS = -g -O0 -fno-stack-protector 
 
 CFLAGS = ${FLAGS} -I unpv13e/lib
 

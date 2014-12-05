@@ -219,7 +219,7 @@ void procICMPv4(char *ptr )
 	hlen1 = ip->ip_hl << 2;		/* length of IP header */
 	if (ip->ip_p != IPPROTO_ICMP)
 		return;				/* not ICMP */
-
+	icmp =(struct icmp*)( ptr + IP4_HDRLEN);
 	if (icmp->icmp_type == ICMP_ECHOREPLY) {
 		if (icmp->icmp_id != ICMPID)
 			return;			/* not a response to our ECHO_REQUEST */

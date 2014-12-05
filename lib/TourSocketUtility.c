@@ -69,7 +69,7 @@ int createTourSocket() {
 	struct sockaddr_in tourAddr;
 	char localAddr[INET_ADDRSTRLEN];
 
-	if( (sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_CONSTANT)) < 0){
+	if( (sockfd = socket(AF_INET, SOCK_RAW, IP_PROTOCOL)) < 0){
 		perror("TourSocketUtility.c :Creating IPRAW Socket Failed:");
 		exit(0);
 	}

@@ -12,13 +12,23 @@ char* recv_packet(int recvfd){
 		if(recv(recvfd, frame,frameLength,0)<0) {
 			perror("PacketSendRecvUtility.c: Packet receiving error");
 		}
+		printf("Packet received sucesfully \n");
 	return frame;
 }
 
-void send_packet(int sendfd, char* sendBuff){
+void send_packet(int sendfd, char* sendBuff, char ipAddress[INET_ADDRSTRLEN]){
 	int s;
-	if((s = send(sendfd, (void*)sendBuff, sizeof(sendBuff), 0)) < sizeof(sendBuff)){
-		printf("Could not send total packet only part of the packet of size %d is sent\n",s);
-		exit(0);
+	int status;
+	struct sockaddr_in sin;
+	sin.sin_family = AF_INET;
+	sin.sin_port =0;
+	if ((status = inet_pton (AF_INET, ipAddress, &(sin.sin_addr))) != 1) {
+			perror("TourUtility.C destination address conversion failed");
+			exit (EXIT_FAILURE);
 	}
+	if (sendto (sendfd, sendBuff, MTU, 0, (SA*)&sin, sizeof (struct sockaddr)) < 0)  {
+	    perror ("sendto() failed ");
+	    exit (EXIT_FAILURE);
+	  }
+	printf("Packet sent sucesfully \n");
 }

@@ -74,38 +74,24 @@ int main(int argc, char* argv[]){
 			tourInfo ti = breakTourPayload(message, &isMyPacket);
 			if(isMyPacket) {
 				printf("Received my packet \n");
+				if(!isAlreadyNeighbour(ti)){
+					addNeighbours(ti);
+				}
+				if(tv == NULL ) {
+					tv = &pTV;
+				}
 				if(isLastNode(ti) ) {
 					malarm(5000);
 				}
-				if(tv !=NULL ) {
-					tv = &pTV;
-				}
-				//Add source to Visited (Not needed)
-				addNeighbours(ti);
-			} else {//Not last node
-				if(isAlreadyNeighbour(ti)){
-					//forward message
+				else {
 					forwardTourIPPacket(rt, ti);
 				}
-				else{
-					//Join Multicast group
-					multicastListeningSocket = createMultiCastListeningsocket();
-					//send ping message to source node
-					sendIcmpMessages();
-					//Add source address to isVisited
-					addNeighbours(ti);
-					//forward message
-					forwardTourIPPacket(rt, ti);
+			}
 
-				}
-
+			if (FD_ISSET(multicastListeningSocket,&readSet)) {
+				break;
 			}
 		}
-		if (FD_ISSET(multicastListeningSocket,&readSet)) {
-			break;
-		}
-
-
 	}
 
 

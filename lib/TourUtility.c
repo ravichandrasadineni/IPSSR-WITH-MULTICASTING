@@ -45,15 +45,15 @@ char* buildTourPayload(tourInfo ti) {
 	intTochar(ti.multicastPort,multicastPortString);
 	memset(tourPayload, '\0',TOUR_PACKET_LENGTH);
 	strncpy(tourPayload,countString,4);
-	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
+	strncat(tourPayload, DELIMETER, strlen(DELIMETER));
 	strncat(tourPayload,currentPositionString,4);
-	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
+	strncat(tourPayload, DELIMETER, strlen(DELIMETER));
 	for(i=0;i<ti.count;i++) {
 		strncat(tourPayload,ti.tourAddresses[i],INET_ADDRSTRLEN);
-		strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
+		strncat(tourPayload, DELIMETER, strlen(DELIMETER));
 	}
 	strncat(tourPayload,ti.multicastAddress,INET_ADDRSTRLEN);
-	strncat(tourPayload, DELIMITER, sizeof(DELIMITER));
+	strncat(tourPayload, DELIMETER, strlen(DELIMETER));
 	strncat(tourPayload,multicastPortString,4);
 	printf("Tour Payload is %s \n", tourPayload);
 	return tourPayload;
@@ -61,7 +61,7 @@ char* buildTourPayload(tourInfo ti) {
 
 tourInfo breakTourPayload(char *packetMessage, int* isMyPacket) {
 	struct ip  *ipHdr = (struct ip *)packetMessage;
-	if(ipHdr->ip_id==IP_IDENTIFICATION) {
+	if(ntohs(ipHdr->ip_id)==IP_IDENTIFICATION) {
 		*isMyPacket =TRUE;
 	}
 	else  {
@@ -70,7 +70,7 @@ tourInfo breakTourPayload(char *packetMessage, int* isMyPacket) {
 	packetMessage = packetMessage+sizeof(struct iphdr);
 	tourInfo ti;
 	char PacketToken[TOUR_PACKET_LENGTH];
-	memset(PacketToken,'\0',FRAME_LENGTH);
+	memset(PacketToken,'\0',TOUR_PACKET_LENGTH);
 	strncpy(PacketToken,packetMessage, strlen(packetMessage));
 	ti.count= atoi(strtok(PacketToken, DELIMETER));
 	ti.currentPosition = atoi(strtok(NULL, DELIMETER));
@@ -163,7 +163,7 @@ void forwardTourIPPacket(int rt, tourInfo ti){
 	char *ipPacket = allocate_strmem(MTU);
 	buildTourIPMessage(tourPayload, ti.tourAddresses[ti.currentPosition +1], ipPacket);
 	free(tourPayload);
-	send_packet(rt, ipPacket);
+	send_packet(rt, ipPacket,ti.tourAddresses[ti.currentPosition +1]);
 	free(ipPacket);
 }
 
@@ -188,7 +188,7 @@ void initateTour(int rt,int argc,char *argv[]) {
 	char* ipPacket= allocate_strmem(MTU);
 	buildTourIPMessage( tourPayload, startTI.tourAddresses[startTI.currentPosition +1], ipPacket);
 	free(tourPayload );
-	send_packet(rt,ipPacket);
+	send_packet(rt,ipPacket,startTI.tourAddresses[startTI.currentPosition +1] );
 	free(ipPacket);
 }
 

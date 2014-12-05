@@ -11,6 +11,7 @@
 #include "Constants.h"
 #include "Asgn3_code/hw_addrs.h"
 int getEth0Index();
+int isMYIP (struct sockaddr_in ipAddress);
 int isEth0(char* name);
 unsigned int malarm (unsigned int milliseconds);
 int isSameMac(char mac1[HADDR_LEN], char mac2[HADDR_LEN]);

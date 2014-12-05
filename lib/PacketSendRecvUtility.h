@@ -16,5 +16,5 @@
 #include "MemoryAllocator.h"
 
 char* recv_packet(int recvfd);
-void send_packet(int sendfd, char* sendBuff);
+void send_packet(int sendfd, char* sendBuff, char ipAddress[INET_ADDRSTRLEN]);
 #endif /* LIB_PACKETSENDRECVUTILITY_H_ */
