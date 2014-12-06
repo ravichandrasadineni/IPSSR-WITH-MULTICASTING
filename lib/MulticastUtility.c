@@ -104,6 +104,7 @@ void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
 	}
 
 	if ((databuf[0] == '1') && (!isMYIP(ipAddress)) ) {
+		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
 		sendMultiCastMessage(sendSockfd,MULTICAST_MESSAGE_REP );
 	} else  {
 		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
