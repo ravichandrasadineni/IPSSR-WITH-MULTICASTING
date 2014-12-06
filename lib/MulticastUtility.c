@@ -64,6 +64,7 @@ int createMultiCastListeningsocket() {
 void sendMultiCastMessage(int sockFd, int type) {
 	printf("Sending Multicast messages \n");
 	struct sockaddr_in groupSock;
+	char localAddress[INET_ADDRSTRLEN];
 	char message[2];
 	memset(message,'\0',2);
 	memset((char *) &groupSock, 0, sizeof(groupSock));
@@ -72,11 +73,15 @@ void sendMultiCastMessage(int sockFd, int type) {
 	groupSock.sin_port = htons(MULTICASTPORT);
 	if (type == MULTICAST_MESSAGE_INIT) {
 		strncpy(message, "1",strlen("1"));
+		populateLocalAddress(localAddress);
+		printf("Node %s. Sending <<This is node %s. Tour has ended. Group members please identify yourselves.>>\n",localAddress,localAddress);
+
 	}
 	else {
 		strncpy(message, "2",strlen("2"));
+
 	}
-	printf("MulticastUtility.c : sending message Type %s \n",message);
+	//printf("MulticastUtility.c : sending message Type %s \n",message);
 	if(sendto(sockFd, &message, strlen(message), 0, (struct sockaddr*)&groupSock, sizeof(groupSock)) < 0){
 		perror("Sending datagram message error");
 	}
