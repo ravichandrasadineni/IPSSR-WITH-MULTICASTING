@@ -14,11 +14,8 @@
 int ISLASTNODEANDWAITED=FALSE;
 
 static void sig_alarm(int signo) {
-	printf("Timed Out \n");
 	ISLASTNODEANDWAITED = TRUE;
 }
-
-
 
 int main(int argc, char* argv[]){
 	int i, on=1, rt, pg, includeHeader = 1, donotincludeHeader = 0;
@@ -45,7 +42,8 @@ int main(int argc, char* argv[]){
 		FD_SET(rt,&readSet);
 		FD_SET(multicastListeningSocket,&readSet);
 		int maxfd = MAX(pg,rt) ;
-		maxfd = MAX(maxfd,multicastListeningSocket) + 1;
+		maxfd = MAX(maxfd,multicastListeningSocket);
+		maxfd +=1;
 		if((returnvalue = select(maxfd,&readSet,NULL,NULL,tv))<0) {
 			if( errno == EINTR){
 				continue;
@@ -55,6 +53,7 @@ int main(int argc, char* argv[]){
 			}
 		}
 		if(ISLASTNODEANDWAITED) {
+			printf("Timed out \n");
 			sendMultiCastMessage(multicastSendingSocket,MULTICAST_MESSAGE_INIT);
 			break;
 
@@ -73,7 +72,6 @@ int main(int argc, char* argv[]){
 			int isMyPacket;
 			tourInfo ti = breakTourPayload(message, &isMyPacket);
 			if(isMyPacket) {
-				printf("Received my packet \n");
 				if(!isAlreadyNeighbour(ti)){
 					addNeighbours(ti);
 					printneighbours();
@@ -89,13 +87,13 @@ int main(int argc, char* argv[]){
 				}
 			}
 
-			if (FD_ISSET(multicastListeningSocket,&readSet)) {
-				break;
-			}
+		}
+		if (FD_ISSET(multicastListeningSocket,&readSet)) {
+			printf("Multicast Socket set \n");
+			break;
 		}
 	}
 
-	printf("Done with Pinging. About to handle Multicast messages \n");
 	if(multicastListeningSocket != MULTICAST_NOT_SET) {
 		handleMulticasting( multicastListeningSocket,multicastSendingSocket);
 	}

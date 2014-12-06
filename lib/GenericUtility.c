@@ -83,10 +83,24 @@ void printMacAddress (char haddr[HADDR_LEN]) {
 }
 
 
+char* getEth0IpAddress() {
+	struct hwa_info	*hwa, *hwahead;
+	for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
+		if (isEth0(hwa->if_name)) {
+			struct sockaddr_in *ipAddress = (struct sockaddr_in *)hwa->ip_addr;
+			char *ipAddressString = (allocate_strmem(INET_ADDRSTRLEN));
+			strncpy(ipAddressString, inet_ntoa(ipAddress->sin_addr), INET_ADDRSTRLEN);
+			free_hwa_info(hwahead);
+			return ipAddressString;
+		}
+	}
+	free_hwa_info(hwahead);
+	return NULL;
+}
 
 
 
-int isSameIP(char IpAddr1[INET_ADDRSTRLEN], char IpAddr2[INET_ADDRSTRLEN]) {
+int isSameIP(char* IpAddr1, char IpAddr2[INET_ADDRSTRLEN]) {
 	int i;
 	if (!strncmp(IpAddr1, IpAddr2, INET_ADDRSTRLEN)) {
 		return TRUE;
@@ -95,10 +109,8 @@ int isSameIP(char IpAddr1[INET_ADDRSTRLEN], char IpAddr2[INET_ADDRSTRLEN]) {
 }
 
 int isMYIP (struct sockaddr_in ipAddress) {
-	char localipaddress[INET_ADDRSTRLEN];
 	char receivedipAddr[INET_ADDRSTRLEN];
-	populateLocalIpAddress(localipaddress);
 	inet_ntop(AF_INET, &(ipAddress.sin_addr), receivedipAddr, INET_ADDRSTRLEN);
-	return isSameIP(localipaddress, receivedipAddr);
+	return isSameIP(getEth0IpAddress(), receivedipAddr);
 }
 

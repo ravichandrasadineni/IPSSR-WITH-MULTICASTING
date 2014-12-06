@@ -28,7 +28,7 @@ void tv_sub(struct timeval *out, struct timeval *in)
 
 
 void populateSourceAddress(tourInfo ti, char sourceAddress[INET_ADDRSTRLEN]){
-	int position = ti.count-1;
+	int position = ti.currentPosition-1;
 	strncpy(sourceAddress, ti.tourAddresses[position], INET_ADDRSTRLEN);
 }
 
@@ -125,6 +125,41 @@ uint16_t icmpv4_cksum(uint16_t *addr, int len)
 }
 
 
+printICMP( char* ipString) {
+	struct ip *iphdr;
+		int ip_flags[4];
+		iphdr = (struct ip*)ipString;
+		printf("IP HEAD LEN : %d \t ",iphdr->ip_hl);
+		printf("IP VER : %d \t ",iphdr->ip_v);
+		printf("IP TOS : %d \t ",iphdr->ip_tos);
+		printf("IP LEN : %d \t ",ntohs(iphdr->ip_len) );
+		printf("\n");
+		printf("IP LEN : %d \t ",iphdr->ip_id);
+		printf("IP TTL : %d \t ",iphdr->ip_ttl);
+		printf("IP PROTOCOL : %d \t ",iphdr->ip_p);
+		printf("IP source : %s \t ",inet_ntoa(iphdr->ip_src));
+		printf("\n");
+		printf("IP destination : %s \t ",inet_ntoa(iphdr->ip_dst));
+		printf("IP SUM : %d \t ",iphdr->ip_sum);
+		printf("\n");
+		struct icmp *icmp;
+		icmp = (struct icmp*)(ipString+IPHEADER_LENGTH);
+		printf("ICMP TYPE : %d \t ",icmp->icmp_type);
+		printf("ICMP CODE : %d \t ",icmp->icmp_code);
+		printf("ICMP ID : %d \t ",icmp->icmp_id );
+		printf("ICMP SEQ : %d \t ",icmp->icmp_seq );
+		printf("\n");
+		struct timeval* tvsend = (struct timeval *) icmp->icmp_data;
+		struct tm * timeinfo;
+		time_t nowTime = tvsend ->tv_sec;
+		timeinfo = localtime (&nowTime);
+		char buff[100];
+		strftime(buff, sizeof(buff), "%b %d %H:%M", timeinfo);
+		printf("%s \n",buff);
+		printf("ICMP checksum : %d \n ",icmp->icmp_cksum );
+}
+
+
 void buildIcmp(char *icmpString) {
 	int			len;
 	struct icmp	*icmp;
@@ -142,10 +177,10 @@ void buildIcmp(char *icmpString) {
 }
 
 
-void buildIP(char* ipString) {
+void buildIP(char* message, char destination[INET_ADDRSTRLEN]) {
 	struct ip *iphdr;
 	int ip_flags[4];
-	iphdr = (struct ip*)ipString;
+	iphdr = (struct ip*)message;
 	iphdr->ip_hl = IP4_HDRLEN / sizeof (uint32_t);
 	iphdr->ip_v = IPVERSION;
 	iphdr->ip_tos = 0;
@@ -160,20 +195,21 @@ void buildIP(char* ipString) {
 			+ (ip_flags[2] << 13)
 			+  ip_flags[3]);
 	iphdr->ip_ttl = htons(255);
-	iphdr->ip_p = htons(IPPROTO_ICMP);
+	iphdr->ip_p = 1;
 	if (( inet_pton (AF_INET, getEth0IpAddress(), &(iphdr->ip_src))) != 1) {
 		perror("ICMPUTILITY.C source address conversion failed");
 		exit (EXIT_FAILURE);
 	}
 
-	if (( inet_pton (AF_INET, ipString, &(iphdr->ip_dst))) != 1) {
+	if (( inet_pton (AF_INET, destination, &(iphdr->ip_dst))) != 1) {
 		perror("ICMPUTILITY.C destination address conversion failed");
 		exit (EXIT_FAILURE);
 	}
 
 	iphdr->ip_sum = 0;
 	iphdr->ip_sum = ipChecksum((uint16_t *) iphdr, IP4_HDRLEN);
-	buildIcmp(ipString+IPHEADER_LENGTH);
+	buildIcmp(message+IPHEADER_LENGTH);
+
 }
 
 void printneighbours(){
@@ -187,6 +223,7 @@ void printneighbours(){
 		printf("%s", currentPosition->ipAddress);
 		currentPosition = currentPosition->next;
 	}
+	printf("\n");
 }
 
 void sendIcmpMessages() {
@@ -210,13 +247,14 @@ void sendIcmpMessages() {
 			printf("ICMPUTILTIY.c :Mac address retrieval failed. Aborting sending ICMP messages \n");
 		}
 		memcpy(eth->h_dest,hardwareAddress.sll_addr,HADDR_LEN);
-		buildIP((char*)(eth+1));
+		buildIP((char*)(eth+1),currentPosition->ipAddress);
 		int outgoingInf = getEth0Index();
 		int socket = createPFPacketSocket();
 		bindPfPacketSocket(socket,  outgoingInf);
 		send_rawpacket(socket,frame);
 		close(socket);
 		free(frame);
+		currentPosition = currentPosition->next;
 	}
 }
 
@@ -231,14 +269,18 @@ void procICMPv4(char *ptr )
 
 	ip = (struct ip *) ptr;		/* start of IP header */
 	hlen1 = ip->ip_hl << 2;		/* length of IP header */
+	icmplen= ntohs(ip->ip_len)-IP4_HDRLEN;
 	if (ip->ip_p != IPPROTO_ICMP)
 		return;				/* not ICMP */
 	icmp =(struct icmp*)( ptr + IP4_HDRLEN);
 	if (icmp->icmp_type == ICMP_ECHOREPLY) {
 		if (icmp->icmp_id != ICMPID)
+
 			return;			/* not a response to our ECHO_REQUEST */
-		if (icmplen < 16)
-			return;			/* not enough data to use */
+		if (icmplen < 16) {
+			printf("ICMP Length is less than 16 \n");
+			return;
+		}/* not enough data to use */
 		struct timeval tvrecv;
 		Gettimeofday(&tvrecv,NULL);
 		tvsend = (struct timeval *) icmp->icmp_data;
@@ -257,7 +299,6 @@ void procICMPv4(char *ptr )
 
 void recvandPrintIcmpMessage(int pg) {
 	char * frame = recv_packet(pg);
-
 	procICMPv4(frame);
 
 }

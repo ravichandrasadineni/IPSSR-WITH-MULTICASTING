@@ -41,7 +41,7 @@ int createMultiCastListeningsocket() {
 	memset((char *) &localSock, 0, sizeof(localSock));
 	localSock.sin_family = AF_INET;
 	localSock.sin_port = htons(MULTICASTPORT);
-	localSock.sin_addr.s_addr = INADDR_ANY;
+	localSock.sin_addr.s_addr = htons(INADDR_ANY);
 	if(bind(sd, (struct sockaddr*)&localSock, sizeof(localSock)))
 	{
 		perror("MulticastUtility.c :Binding datagram socket error");
@@ -65,6 +65,7 @@ void sendMultiCastMessage(int sockFd, int type) {
 	printf("Sending Multicast messages \n");
 	struct sockaddr_in groupSock;
 	char message[2];
+	memset(message,'\0',2);
 	memset((char *) &groupSock, 0, sizeof(groupSock));
 	groupSock.sin_family = AF_INET;
 	groupSock.sin_addr.s_addr = inet_addr(MULTICASTADDR);
@@ -86,6 +87,7 @@ void sendMultiCastMessage(int sockFd, int type) {
 }
 
 void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
+	printf("Recieved multicast \n");
 	char databuf[1024];
 	struct sockaddr_in ipAddress;
 	int addrLength = sizeof(struct sockaddr_in);
@@ -99,7 +101,7 @@ void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
 	if ((databuf[0] == '1') && (!isMYIP(ipAddress)) ) {
 		sendMultiCastMessage(sendSockfd,MULTICAST_MESSAGE_REP );
 	} else  {
-		printf("Received Multicast Message \n");
+		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
 
 	}
 
@@ -117,9 +119,12 @@ void handleMulticasting(int listeningSocket, int readSocket) {
 		maxfd = listeningSocket +1;
 		if((returnValue = select(maxfd,&readSet,NULL,NULL,&pTV))<0) {
 			if( errno == EINTR){
-				printf("Tour Done and Exiting  \n");
-				exit(0);
+				printf("Continue \n");
 			}
+		}
+		if(returnValue == 0 ) {
+			printf("Tour Done and Exiting  \n");
+			exit(0);
 		}
 		if(FD_ISSET(listeningSocket,&readSet)) {
 			recvAndReplyMulticastMessage(listeningSocket, readSocket);

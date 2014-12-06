@@ -23,22 +23,6 @@ void populateEth0Mac(char macAddress[HADDR_LEN]) {
 }
 
 
-char* getEth0IpAddress() {
-	struct hwa_info	*hwa, *hwahead;
-	for (hwahead = hwa = Get_hw_addrs(); hwa != NULL; hwa = hwa->hwa_next) {
-		if (isEth0(hwa->if_name)) {
-			struct sockaddr_in *ipAddress = (struct sockaddr_in *)hwa->ip_addr;
-			char *ipAddressString =  inet_ntoa(ipAddress->sin_addr);
-			free_hwa_info(hwahead);
-			return ipAddressString;
-		}
-	}
-	free_hwa_info(hwahead);
-	return NULL;
-}
-
-
-
 
 
 int createICMPSocket(){

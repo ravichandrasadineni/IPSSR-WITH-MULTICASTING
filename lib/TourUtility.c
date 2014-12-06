@@ -18,9 +18,10 @@ void printTourInfo (tourInfo ti) {
 	printf("MA: %s \t ",ti.multicastAddress);
 	printf("Mp: %d \n ",ti.multicastPort);
 	int i;
-	for(i=0;i<ti.count;i++) {
+	for(i=0;i<ti.count-1;i++) {
 		printf ("%s \t", ti.tourAddresses[i]);
 	}
+	printf ("%s \n", ti.tourAddresses[i]);
 }
 
 
@@ -90,10 +91,10 @@ tourInfo breakTourPayload(char *packetMessage, int* isMyPacket) {
 	ti.tourAddresses = allocateINETADDRMemory(ti.count);
 	int i;
 	for(i=0; i<ti.count;i++) {
-		strncpy(ti.tourAddresses[i],strtok(PacketToken, DELIMETER), INET_ADDRSTRLEN);
+		strncpy(ti.tourAddresses[i],strtok(NULL, DELIMETER), INET_ADDRSTRLEN);
 	}
-	strncpy(ti.multicastAddress,strtok(PacketToken, DELIMETER), INET_ADDRSTRLEN);
-	ti.multicastPort = atoi(strtok(PacketToken,DELIMETER));
+	strncpy(ti.multicastAddress,strtok(NULL, DELIMETER), INET_ADDRSTRLEN);
+	ti.multicastPort = atoi(strtok(NULL,DELIMETER));
 	printf("Received Tour Packet is \n");
 	printTourInfo(ti);
 	return ti;

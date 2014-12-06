@@ -12,7 +12,6 @@ char* recv_packet(int recvfd){
 		if(recv(recvfd, frame,frameLength,0)<0) {
 			perror("PacketSendRecvUtility.c: Packet receiving error");
 		}
-		printf("Packet received sucesfully \n");
 	return frame;
 }
 

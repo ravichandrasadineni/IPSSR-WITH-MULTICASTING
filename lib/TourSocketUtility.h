@@ -19,7 +19,6 @@ int createICMPSocket();
 void populateEth0Mac(char macAddress[HADDR_LEN]);
 int createTourSocket();
 int createPFPacketSocket() ;
-char* getEth0IpAddress();
 void bindPfPacketSocket(int sockfd, int interfaceIndex) ;
 
 
