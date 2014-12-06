@@ -52,6 +52,7 @@ static const char BRODCAST_MAC[HADDR_LEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 #define IP_IDENTIFICATION 20008
 #define ICMP_PORT 1036
 #define UPD_PORT 1045
+#define TIME_LEN 1024
 
 
 #endif /* LIB_CONSTANTS_H_ */

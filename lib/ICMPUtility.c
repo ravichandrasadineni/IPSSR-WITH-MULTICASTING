@@ -237,7 +237,7 @@ void sendIcmpMessages() {
 		return;
 	}
 	neighbours* currentPosition = head;
-	printf("ICMPUtility.c : Before sending ICMP messages :");
+//	printf("ICMPUtility.c : Before sending ICMP messages :");
 	printneighbours();
 	while(currentPosition!=NULL) {
 		hwaddr hardwareAddress;
@@ -252,6 +252,10 @@ void sendIcmpMessages() {
 		int outgoingInf = getEth0Index();
 		int socket = createPFPacketSocket();
 		bindPfPacketSocket(socket,  outgoingInf);
+		char localaddress[INET_ADDRSTRLEN], ipAddr[INET_ADDRSTRLEN];
+		populateLocalAddress(localaddress);
+		getIpAddressFromDomainName(localaddress, ipAddr);
+		printf("PING %s (%s) : %d data bytes\n", localaddress, ipAddr, ICMP_HDRLEN + DATA_LENGTH);
 		send_rawpacket(socket,frame);
 		close(socket);
 		//free(frame);
