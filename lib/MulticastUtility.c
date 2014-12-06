@@ -56,13 +56,11 @@ int createMultiCastListeningsocket() {
 		close(sd);
 		exit(1);
 	}
-	printf("MulticastUtility.c :created Multicast Listening  Socket %d \n", sd);
 	return sd;
 
 }
 
 void sendMultiCastMessage(int sockFd, int type) {
-	printf("Sending Multicast messages \n");
 	struct sockaddr_in groupSock;
 	char message[2];
 	memset(message,'\0',2);
@@ -87,7 +85,6 @@ void sendMultiCastMessage(int sockFd, int type) {
 }
 
 void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
-	printf("Recieved multicast \n");
 	char databuf[1024];
 	struct sockaddr_in ipAddress;
 	int addrLength = sizeof(struct sockaddr_in);

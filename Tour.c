@@ -33,12 +33,8 @@ int main(int argc, char* argv[]){
 	struct timeval* tv = NULL;
 
 	struct in_addr source;
-	multicastListeningSocket =createMultiCastListeningsocket();
-
 	if(argc >= 2) {
 		initateTour(rt,argc,argv);
-		printf("sent Initial Tour Packet \n");
-
 	}
 	fd_set readSet;
 	int returnvalue, timeoutLastNode;
@@ -61,7 +57,6 @@ int main(int argc, char* argv[]){
 			}
 		}
 		if(ISLASTNODEANDWAITED) {
-			printf("Timed out \n");
 			sendMultiCastMessage(multicastSendingSocket,MULTICAST_MESSAGE_INIT);
 			break;
 
@@ -83,7 +78,7 @@ int main(int argc, char* argv[]){
 				ticks = time(NULL);
 				snprintf(timeBuff, sizeof(timeBuff), "%.24s\t",ctime(&ticks));
 				source.s_addr = inet_addr(ti.tourAddresses[ti.currentPosition - 1]);
-				printf("received source routing packet from %s", getDomainNameFromIpAddress(source));
+				printf("%s received source routing packet from %s \n", timeBuff, getDomainNameFromIpAddress(source));
 				if(!isAlreadyNeighbour(ti)){
 					addNeighbours(ti);
 					if(!isListeninngSocketCreated ) {
@@ -106,7 +101,6 @@ int main(int argc, char* argv[]){
 
 		}
 		if (isListeninngSocketCreated && FD_ISSET(multicastListeningSocket,&readSet)) {
-			printf("Multicast Socket set \n");
 			break;
 		}
 	}

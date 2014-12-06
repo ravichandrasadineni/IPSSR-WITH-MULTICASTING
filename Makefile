@@ -25,11 +25,11 @@
 
 CC = gcc
 
-LIBS = -lresolv -lnsl -pthread -lm unpv13e/libunp.a
+LIBS = -lresolv -lnsl -pthread -lm /users/cse533/Stevens/unpv13e/libunp.a
 	
 FLAGS = -g -O0 -fno-stack-protector 
 
-CFLAGS = ${FLAGS} -I unpv13e/lib
+CFLAGS = ${FLAGS} -I /users/cse533/Stevens/unpv13e/lib
 
 all:rsadineni_arp  rsadineni_Tour
 OBJECTS= GenericUtility.o ARPSocketUtility.o  MemoryAllocator.o  ARPUtility.o get_hw_addrs.o ARPUDSUtility.o AddressUtility.o FrameSendRecvUtility.o ARPAPI.o ArpCache.o PacketSendRecvUtility.o TourUtility.o TourSocketUtility.o ICMPUtility.o MulticastUtility.o

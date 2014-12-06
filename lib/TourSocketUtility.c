@@ -44,7 +44,7 @@ int createICMPSocket(){
 		perror("Bind failed :");
 		exit(0);
 	}
-	printf("TourSocketUtility.c :created ICMP Listening Socket %d \n", sockfd);
+	//printf("TourSocketUtility.c :created ICMP Listening Socket %d \n", sockfd);
 	return sockfd;
 }
 
@@ -70,7 +70,7 @@ int createTourSocket() {
 		perror("TourSocketUtility.c :Bind failed :");
 		exit(0);
 	}
-	printf("TourSocketUtility.c :created Tour Sending Socket %d \n", sockfd);
+	//printf("TourSocketUtility.c :created Tour Sending Socket %d \n", sockfd);
 	return sockfd;
 }
 

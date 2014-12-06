@@ -68,7 +68,7 @@ char* buildTourPayload(tourInfo ti) {
 	strncat(tourPayload,ti.multicastAddress,INET_ADDRSTRLEN);
 	strncat(tourPayload, DELIMETER, strlen(DELIMETER));
 	strncat(tourPayload,multicastPortString,4);
-	printf("Tour Payload is %s \n", tourPayload);
+	//printf("Tour Payload is %s \n", tourPayload);
 	return tourPayload;
 }
 
@@ -96,7 +96,7 @@ tourInfo breakTourPayload(char *packetMessage, int* isMyPacket) {
 	strncpy(ti.multicastAddress,strtok(NULL, DELIMETER), INET_ADDRSTRLEN);
 	ti.multicastPort = atoi(strtok(NULL,DELIMETER));
 	printf("Received Tour Packet is \n");
-	printTourInfo(ti);
+	//printTourInfo(ti);
 	return ti;
 }
 
@@ -157,13 +157,13 @@ void buildTourIPMessage(char Payload[TOUR_PACKET_LENGTH], char destAddr[INET_ADD
 	char sourceIpAddress[INET_ADDRSTRLEN];
 	inet_ntop(AF_INET, &(ipHdr->ip_dst), destIpAddress, INET_ADDRSTRLEN);
 	inet_ntop(AF_INET, &(ipHdr->ip_src), sourceIpAddress, INET_ADDRSTRLEN);
-	printf("IP Packet : source : %s, destination : %s, ", sourceIpAddress,destIpAddress);
+	//printf("IP Packet : source : %s, destination : %s, ", sourceIpAddress,destIpAddress);
 	ipHdr->ip_p = IP_PROTOCOL;
 	ipHdr->ip_len = htons (IP4_HDRLEN + TOUR_PACKET_LENGTH);
 	ipHdr->ip_id = htons(IP_IDENTIFICATION);
 	ipHdr->ip_sum = 0;
 	ipHdr->ip_sum = ip_Checksum((uint16_t *) ipHdr, IP4_HDRLEN);
-	printf("The version is %d\thl is %d\ttos is %d\tcheck is %d\tproto is %d\tttl is %d\tid is %d\ttot_len is %d\n",ipHdr->ip_v,ipHdr->ip_hl,ipHdr->ip_tos,ipHdr->ip_sum,ipHdr->ip_p,ipHdr->ip_ttl,ipHdr->ip_id, ipHdr->ip_len);
+	//printf("The version is %d\thl is %d\ttos is %d\tcheck is %d\tproto is %d\tttl is %d\tid is %d\ttot_len is %d\n",ipHdr->ip_v,ipHdr->ip_hl,ipHdr->ip_tos,ipHdr->ip_sum,ipHdr->ip_p,ipHdr->ip_ttl,ipHdr->ip_id, ipHdr->ip_len);
 	memcpy(Message+IP4_HDRLEN,Payload,TOUR_PACKET_LENGTH);
 }
 
@@ -179,8 +179,8 @@ void forwardTourIPPacket(int rt, tourInfo ti){
 
 void initateTour(int rt,int argc,char *argv[]) {
 	tourInfo startTI = contstructIntTourPacket(argc,argv);
-	printf("TourUtiltiy.c :TourInfo in initate TOur");
-	printTourInfo(startTI);
+	//printf("TourUtiltiy.c :TourInfo in initate TOur");
+	////printTourInfo(startTI);
 	char *tourPayload =buildTourPayload(startTI);
 	char* ipPacket= allocate_strmem(MTU);
 	buildTourIPMessage( tourPayload, startTI.tourAddresses[startTI.currentPosition +1], ipPacket);
