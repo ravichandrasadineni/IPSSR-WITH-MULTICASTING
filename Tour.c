@@ -10,7 +10,8 @@
 #include "lib/MemoryAllocator.h"
 #include "lib/GenericUtility.h"
 #include "lib/TourSocketUtility.h"
-
+#include "lib/AddressUtility.h"
+#include <netinet/in.h>
 int ISLASTNODEANDWAITED=FALSE;
 
 static void sig_alarm(int signo) {
@@ -22,12 +23,15 @@ int main(int argc, char* argv[]){
 	struct timeval pTV;
 	pTV.tv_sec = 1;
 	pTV.tv_usec =0;
+	char timeBuff[TIME_LEN];
 	int multicastListeningSocket = MULTICAST_NOT_SET;
 	int multicastSendingSocket = createSendingSocket();
 	signal(SIGALRM, sig_alarm);
 	pg = createICMPSocket();
 	rt = createTourSocket();
+	time_t ticks;
 	struct timeval* tv = NULL;
+	struct in_addr source;
 	multicastListeningSocket =createMultiCastListeningsocket();
 	if(argc >= 2) {
 		initateTour(rt,argc,argv);
@@ -72,6 +76,10 @@ int main(int argc, char* argv[]){
 			int isMyPacket;
 			tourInfo ti = breakTourPayload(message, &isMyPacket);
 			if(isMyPacket) {
+				ticks = time(NULL);
+				snprintf(timeBuff, sizeof(timeBuff), "%.24s\t",ctime(&ticks));
+				source.s_addr = inet_addr(ti.tourAddresses[ti.currentPosition - 1]);
+				printf("received source routing packet from %s", getDomainNameFromIpAddress(source));
 				if(!isAlreadyNeighbour(ti)){
 					addNeighbours(ti);
 					printneighbours();
