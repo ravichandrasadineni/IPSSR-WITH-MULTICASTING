@@ -12,7 +12,7 @@
 #include "lib/TourSocketUtility.h"
 
 int ISLASTNODEANDWAITED=FALSE;
-
+int isListeninngSocketCreated = FALSE;
 static void sig_alarm(int signo) {
 	ISLASTNODEANDWAITED = TRUE;
 }
@@ -28,7 +28,6 @@ int main(int argc, char* argv[]){
 	pg = createICMPSocket();
 	rt = createTourSocket();
 	struct timeval* tv = NULL;
-	multicastListeningSocket =createMultiCastListeningsocket();
 	if(argc >= 2) {
 		initateTour(rt,argc,argv);
 		printf("sent Initial Tour Packet \n");
@@ -40,9 +39,11 @@ int main(int argc, char* argv[]){
 		FD_ZERO (&readSet);
 		FD_SET(pg,&readSet);
 		FD_SET(rt,&readSet);
-		FD_SET(multicastListeningSocket,&readSet);
 		int maxfd = MAX(pg,rt) ;
-		maxfd = MAX(maxfd,multicastListeningSocket);
+		if(isListeninngSocketCreated) {
+			FD_SET(multicastListeningSocket,&readSet);
+			maxfd = MAX(maxfd,multicastListeningSocket);
+		}
 		maxfd +=1;
 		if((returnvalue = select(maxfd,&readSet,NULL,NULL,tv))<0) {
 			if( errno == EINTR){
@@ -74,6 +75,11 @@ int main(int argc, char* argv[]){
 			if(isMyPacket) {
 				if(!isAlreadyNeighbour(ti)){
 					addNeighbours(ti);
+					if(!isListeninngSocketCreated ) {
+						multicastListeningSocket =createMultiCastListeningsocket();
+						isListeninngSocketCreated = TRUE;
+					}
+
 					printneighbours();
 				}
 				if(tv == NULL ) {
@@ -88,7 +94,7 @@ int main(int argc, char* argv[]){
 			}
 
 		}
-		if (FD_ISSET(multicastListeningSocket,&readSet)) {
+		if (isListeninngSocketCreated && FD_ISSET(multicastListeningSocket,&readSet)) {
 			printf("Multicast Socket set \n");
 			break;
 		}

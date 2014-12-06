@@ -85,6 +85,8 @@ Malloc(size_t size)
 {
 	void	*ptr;
 
+		printf(" Allocating %d bytes \n ",size);
+
 	if ( (ptr = malloc(size)) == NULL)
 		err_sys("malloc error");
 	return(ptr);

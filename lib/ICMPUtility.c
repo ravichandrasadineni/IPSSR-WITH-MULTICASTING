@@ -245,6 +245,7 @@ void sendIcmpMessages() {
 		inet_aton(currentPosition->ipAddress,&ipAddress.sin_addr);
 		if(areq ((SA*)&ipAddress,sizeof(ipAddress) ,  &hardwareAddress)<0) {
 			printf("ICMPUTILTIY.c :Mac address retrieval failed. Aborting sending ICMP messages \n");
+			return;
 		}
 		memcpy(eth->h_dest,hardwareAddress.sll_addr,HADDR_LEN);
 		buildIP((char*)(eth+1),currentPosition->ipAddress);
@@ -253,7 +254,7 @@ void sendIcmpMessages() {
 		bindPfPacketSocket(socket,  outgoingInf);
 		send_rawpacket(socket,frame);
 		close(socket);
-		free(frame);
+		//free(frame);
 		currentPosition = currentPosition->next;
 	}
 }

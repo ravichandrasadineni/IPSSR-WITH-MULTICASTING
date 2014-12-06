@@ -90,11 +90,11 @@ char* getEth0IpAddress() {
 			struct sockaddr_in *ipAddress = (struct sockaddr_in *)hwa->ip_addr;
 			char *ipAddressString = (allocate_strmem(INET_ADDRSTRLEN));
 			strncpy(ipAddressString, inet_ntoa(ipAddress->sin_addr), INET_ADDRSTRLEN);
-			free_hwa_info(hwahead);
+			//free_hwa_info(hwahead);
 			return ipAddressString;
 		}
 	}
-	free_hwa_info(hwahead);
+	//free_hwa_info(hwahead);
 	return NULL;
 }
 
