@@ -24,7 +24,6 @@ int  createSendingSocket() {
 		perror("MulticastUtility.c :Setting local interface error");
 		exit(1);
 	}
-	printf("MulticastUtility.c :created Multicast Sending Socket %d \n", sd);
 	return sd;
 }
 
@@ -72,25 +71,21 @@ void sendMultiCastMessage(int sockFd, int type) {
 	populateLocalAddress(localAddress);
 	if (type == MULTICAST_MESSAGE_INIT) {
 		strncpy(message, "1",strlen("1"));
-		printf("Node %s. Sending This is node %s. Tour has ended. Group members please identify yourselves.>>\n",localAddress,localAddress);
+		char LocalDomainName[100];
+		printf("Node %s. Sending This is node %s. Tour has ended. Group members please identify yourselves.\n", getDomainName(localAddress), getDomainName(localAddress));
 
 	}
 	else {
 		strncpy(message, "2",strlen("2"));
-		printf("Node %s. Sending Node %s I am a member of the group\n",localAddress, localAddress);
+		printf("Node %s. Sending Node %s I am a member of the group\n", getDomainName(localAddress),  getDomainName(localAddress));
 	}
 	//printf("MulticastUtility.c : sending message Type %s \n",message);
 	if(sendto(sockFd, &message, strlen(message), 0, (struct sockaddr*)&groupSock, sizeof(groupSock)) < 0){
 		perror("Sending datagram message error");
 	}
-
-	else
-		printf("MulticastUtility.c : Sending datagram message...OK\n");
-
 }
 
 void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
-
 	char databuf[1024];
 	char localAddr[INET_ADDRSTRLEN];
 	struct sockaddr_in ipAddress;
@@ -103,7 +98,8 @@ void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
 	}
 	populateLocalAddress(localAddr);
 	if ((databuf[0] == '1') && (!isMYIP(ipAddress)) ) {
-		printf("Node %s. Received This is node %s. Tour has ended. Group members please identify yourselves.\n",localAddr,inet_ntoa(ipAddress.sin_addr));
+
+		printf("Node %s. Received This is node %s. Tour has ended. Group members please identify yourselves.\n",getDomainName(localAddr),getDomainNameFromIpAddress(ipAddress.sin_addr));
 		//		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
 		sendMultiCastMessage(sendSockfd,MULTICAST_MESSAGE_REP );
 
@@ -111,10 +107,10 @@ void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
 	} else  {
 		//		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
 		if(databuf[0] == '1'){
-			printf("Node %s. Received This is node %s. Tour has ended. Group members please identify yourselves.\n",localAddr, inet_ntoa(ipAddress.sin_addr));
+			printf("Node %s. Received This is node %s. Tour has ended. Group members please identify yourselves.\n", getDomainName(localAddr), getDomainNameFromIpAddress(ipAddress.sin_addr));
 		}
 		else{
-			printf("Node %s. Received  Node %s .  I am a member of the group.\n",localAddr, inet_ntoa(ipAddress.sin_addr));
+			printf("Node %s. Received  Node %s .  I am a member of the group.\n", getDomainName(localAddr), getDomainNameFromIpAddress(ipAddress.sin_addr));
 		}
 	}
 

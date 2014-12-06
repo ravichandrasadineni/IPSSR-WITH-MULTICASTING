@@ -130,17 +130,24 @@ void printFrame(char *Frame) {
 	printf("ARP Dest Mac :");
 	printMacAddress(arpHeader->target_mac);
 	printf("\n");
-	struct in_addr sinAddr;
-	sinAddr.s_addr = getSaddr(arpHeader->sender_ip);
-	printf("ARP Sender ip : %s \t",inet_ntoa(sinAddr));
-	sinAddr.s_addr = getSaddr(arpHeader->target_ip);
-	printf("ARP Destination ip : %s \n",inet_ntoa(sinAddr));
-	printf("Advertisement Number : %d \t",arpHeader->advNumber);
-	printf("Hardware Length : %d \t",arpHeader->hlen);
-	printf("Hardware Type : %d \n",arpHeader->htype);
-	printf("Protocol Length : %d \t",arpHeader->plen);
-	printf("Protocol Type : %d \t",arpHeader->ptype);
-	printf("Operation Code : %d \n",arpHeader->opcode);
+	struct in_addr sinAddr1;
+	struct in_addr sinAddr2;
+	sinAddr1.s_addr = getSaddr(arpHeader->sender_ip);
+	sinAddr2.s_addr = getSaddr(arpHeader->target_ip);
+	//printf("ARP Destination ip : %s \n",inet_ntoa(sinAddr2));
+	//printf("Advertisement Number : %d \t",arpHeader->advNumber);
+	//printf("Hardware Length : %d \t",arpHeader->hlen);
+	//printf("Hardware Type : %d \n",arpHeader->htype);
+	//printf("Protocol Length : %d \t",arpHeader->plen);
+	//printf("Protocol Type : %d \t",arpHeader->ptype);
+	//printf("Operation Code : %d \n",arpHeader->opcode);
+	if(arpHeader->opcode == 1) {
+		printf("%s requested %s  for MacAddress \n", getDomainNameFromIpAddress(sinAddr1), getDomainNameFromIpAddress(sinAddr2));
+	}else {
+		printf("%s replied %s  with MacAddress \n", getDomainNameFromIpAddress(sinAddr1), getDomainNameFromIpAddress(sinAddr2));
+	}
+
+
 
 }
 

@@ -28,6 +28,5 @@ void send_packet(int sendfd, char* sendBuff, char ipAddress[INET_ADDRSTRLEN]){
 	if (sendto (sendfd, sendBuff, MTU, 0, (SA*)&sin, sizeof (struct sockaddr)) < 0)  {
 	    perror ("sendto() failed ");
 	    exit (EXIT_FAILURE);
-	  }
-	printf("Packet sent sucesfully \n");
+	}
 }

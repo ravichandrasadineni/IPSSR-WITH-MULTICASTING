@@ -39,6 +39,22 @@ void getIpAddressFromDomainName(char* string, char* ipAddress) {
 
 char* getDomainNameFromIpAddress(struct in_addr ipAddress) {
 	struct hostent *he;
+	char* domainName = allocate_strmem(100);
 	he =  gethostbyaddr(&ipAddress, sizeof(struct sockaddr_in),AF_INET);
-	return he->h_name;
+	strncpy(domainName,he->h_name,100);
+	return domainName;
 }
+
+
+char* getDomainName(char ipString[INET_ADDRSTRLEN]) {
+	struct in_addr ipAddress;
+	char* domainName = allocate_strmem(100);
+	inet_pton(AF_INET, ipString, &(ipAddress));
+	struct hostent *he;
+	he =  gethostbyaddr(&(ipAddress), sizeof(struct sockaddr_in),AF_INET);
+	strncpy(domainName,he->h_name,100);
+	return domainName;;
+}
+
+
+

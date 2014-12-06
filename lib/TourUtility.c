@@ -73,15 +73,17 @@ char* buildTourPayload(tourInfo ti) {
 }
 
 tourInfo breakTourPayload(char *packetMessage, int* isMyPacket) {
+	tourInfo ti;
 	struct ip  *ipHdr = (struct ip *)packetMessage;
 	if(ntohs(ipHdr->ip_id)==IP_IDENTIFICATION) {
 		*isMyPacket =TRUE;
 	}
 	else  {
 		*isMyPacket =FALSE;
+		return ti;
 	}
 	packetMessage = packetMessage+sizeof(struct iphdr);
-	tourInfo ti;
+
 	char PacketToken[TOUR_PACKET_LENGTH];
 	memset(PacketToken,'\0',TOUR_PACKET_LENGTH);
 	strncpy(PacketToken,packetMessage, strlen(packetMessage));
@@ -172,9 +174,9 @@ void forwardTourIPPacket(int rt, tourInfo ti){
 	char *tourPayload = buildTourPayload(ti);
 	char *ipPacket = allocate_strmem(MTU);
 	buildTourIPMessage(tourPayload, ti.tourAddresses[ti.currentPosition +1], ipPacket);
-	free(tourPayload);
+	//free(tourPayload);
 	send_packet(rt, ipPacket,ti.tourAddresses[ti.currentPosition +1]);
-	free(ipPacket);
+	//free(ipPacket);
 }
 
 void initateTour(int rt,int argc,char *argv[]) {
@@ -184,8 +186,8 @@ void initateTour(int rt,int argc,char *argv[]) {
 	char *tourPayload =buildTourPayload(startTI);
 	char* ipPacket= allocate_strmem(MTU);
 	buildTourIPMessage( tourPayload, startTI.tourAddresses[startTI.currentPosition +1], ipPacket);
-	free(tourPayload );
+	//free(tourPayload );
 	send_packet(rt,ipPacket,startTI.tourAddresses[startTI.currentPosition +1] );
-	free(ipPacket);
+	//free(ipPacket);
 }
 

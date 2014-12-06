@@ -14,6 +14,7 @@
 #include <net/if_arp.h>
 #include "unp.h"
 #include "ARPSocketUtility.h"
+#include "AddressUtility.h"
 
 struct ARPCACHEENTRY{
 	char HW_address[HADDR_LEN];

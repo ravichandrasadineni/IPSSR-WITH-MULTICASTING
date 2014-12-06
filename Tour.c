@@ -34,6 +34,8 @@ int main(int argc, char* argv[]){
 
 	struct in_addr source;
 	if(argc >= 2) {
+		multicastListeningSocket =createMultiCastListeningsocket();
+		isListeninngSocketCreated = TRUE;
 		initateTour(rt,argc,argv);
 	}
 	fd_set readSet;
@@ -71,7 +73,6 @@ int main(int argc, char* argv[]){
 		}
 		if(FD_ISSET(rt,&readSet)) {
 			char* message = recv_packet(rt);
-			//TO DO : Check IDENTIFICATION NUMBER AND PRINT MESSAGE
 			int isMyPacket;
 			tourInfo ti = breakTourPayload(message, &isMyPacket);
 			if(isMyPacket) {

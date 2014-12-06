@@ -213,7 +213,7 @@ void buildIP(char* message, char destination[INET_ADDRSTRLEN]) {
 }
 
 void printneighbours(){
-	neighbours *currentPosition = head;
+	/*neighbours *currentPosition = head;
 	if(currentPosition == NULL){
 		printf("The neighbours list is empty\n");
 		return;
@@ -223,7 +223,7 @@ void printneighbours(){
 		printf("%s", currentPosition->ipAddress);
 		currentPosition = currentPosition->next;
 	}
-	printf("\n");
+	printf("\n");*/
 }
 
 void sendIcmpMessages() {
@@ -255,7 +255,7 @@ void sendIcmpMessages() {
 		char localaddress[INET_ADDRSTRLEN], ipAddr[INET_ADDRSTRLEN];
 		populateLocalAddress(localaddress);
 		getIpAddressFromDomainName(localaddress, ipAddr);
-		printf("PING %s (%s) : %d data bytes\n", localaddress, ipAddr, ICMP_HDRLEN + DATA_LENGTH);
+		printf("PING %s (%s) : %d data bytes\n", getDomainName(currentPosition->ipAddress), currentPosition->ipAddress, ICMP_HDRLEN + DATA_LENGTH);
 		send_rawpacket(socket,frame);
 		close(socket);
 		//free(frame);

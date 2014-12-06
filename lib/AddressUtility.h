@@ -16,5 +16,6 @@ void getIpAddressFromDomainName(char* string, char* ipAddress) ;
 void populateLocalAddress(char localAddress[INET_ADDRSTRLEN]);
 void getIPAddress(u_int32_t *ipAddress);
 char* getDomainNameFromIpAddress(struct in_addr ipAddress) ;
+char* getDomainName(char ipString[INET_ADDRSTRLEN]);
 
 #endif /* LIB_ADDRESSUTILITY_H_ */
