@@ -62,19 +62,24 @@ int createMultiCastListeningsocket() {
 
 void sendMultiCastMessage(int sockFd, int type) {
 	struct sockaddr_in groupSock;
+	char localAddress[INET_ADDRSTRLEN];
 	char message[2];
 	memset(message,'\0',2);
 	memset((char *) &groupSock, 0, sizeof(groupSock));
 	groupSock.sin_family = AF_INET;
 	groupSock.sin_addr.s_addr = inet_addr(MULTICASTADDR);
 	groupSock.sin_port = htons(MULTICASTPORT);
+	populateLocalAddress(localAddress);
 	if (type == MULTICAST_MESSAGE_INIT) {
 		strncpy(message, "1",strlen("1"));
+		printf("Node %s. Sending This is node %s. Tour has ended. Group members please identify yourselves.>>\n",localAddress,localAddress);
+
 	}
 	else {
 		strncpy(message, "2",strlen("2"));
+		printf("Node %s. Sending Node %s I am a member of the group\n",localAddress, localAddress);
 	}
-	printf("MulticastUtility.c : sending message Type %s \n",message);
+	//printf("MulticastUtility.c : sending message Type %s \n",message);
 	if(sendto(sockFd, &message, strlen(message), 0, (struct sockaddr*)&groupSock, sizeof(groupSock)) < 0){
 		perror("Sending datagram message error");
 	}
@@ -85,7 +90,9 @@ void sendMultiCastMessage(int sockFd, int type) {
 }
 
 void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
+
 	char databuf[1024];
+	char localAddr[INET_ADDRSTRLEN];
 	struct sockaddr_in ipAddress;
 	int addrLength = sizeof(struct sockaddr_in);
 	if(recvfrom(recvsockfd, databuf, MTU,0,(SA *)&ipAddress,&addrLength) < 0)
@@ -94,13 +101,21 @@ void recvAndReplyMulticastMessage(int recvsockfd, int sendSockfd) {
 		close(recvsockfd);
 		exit(1);
 	}
-
+	populateLocalAddress(localAddr);
 	if ((databuf[0] == '1') && (!isMYIP(ipAddress)) ) {
-		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
+		printf("Node %s. Received This is node %s. Tour has ended. Group members please identify yourselves.\n",localAddr,inet_ntoa(ipAddress.sin_addr));
+		//		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
 		sendMultiCastMessage(sendSockfd,MULTICAST_MESSAGE_REP );
-	} else  {
-		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
 
+
+	} else  {
+		//		printf("Received Multicast Message from %s \n", inet_ntoa(ipAddress.sin_addr));
+		if(databuf[0] == '1'){
+			printf("Node %s. Received This is node %s. Tour has ended. Group members please identify yourselves.\n",localAddr, inet_ntoa(ipAddress.sin_addr));
+		}
+		else{
+			printf("Node %s. Received  Node %s .  I am a member of the group.\n",localAddr, inet_ntoa(ipAddress.sin_addr));
+		}
 	}
 
 }
